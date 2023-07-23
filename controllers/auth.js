@@ -41,6 +41,7 @@ exports.signup = async (req, res, next) => {
       },
     });
     console.log(newUser);
+
     res
       .status(201)
       // connect with Front end...
