@@ -5,6 +5,7 @@ const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
+
 exports.signup = async (req, res, next) => {
   const firstname = req.body.firstname;
   const lastname = req.body.lastname;
