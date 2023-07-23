@@ -1,7 +1,16 @@
 const { validationResult } = require("express-validator");
+const path = require("path");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { PrismaClient } = require("@prisma/client");
+const sgMail = require("@sendgrid/mail");
+const markdown = require("markdown-it")();
+
+sgMail.setApiKey(
+  "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"
+);
+const bathText = path.join(__dirname, "Emai_Design.html");
+const emailDesignHtml = markdown.render(bathText);
 
 const prisma = new PrismaClient();
 
@@ -13,7 +22,6 @@ exports.signup = async (req, res, next) => {
   const password = req.body.password;
   //---------------------------Validations--------------------------
   const errors = validationResult(req);
-  console.log(errors);
   if (!errors.isEmpty()) {
     const error = new Error("Please Try again , Validation Failed");
     error.statusCode = 422;
@@ -33,11 +41,16 @@ exports.signup = async (req, res, next) => {
       },
     });
     console.log(newUser);
-    console.log(newUser.userId);
     res
       .status(201)
       // connect with Front end...
       .json({ message: "User Created Successfully", userId: newUser.userid });
+    sgMail.send({
+      to: email,
+      from: "postman.mord@gmail.com",
+      subject: "Your Signup to postman succeeded!",
+      html: emailDesignHtml,
+    });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -85,31 +98,32 @@ exports.login = async (req, res, next) => {
   }
 };
 
-exports.logout = async (req, res, next) => {
-  const token = req.body.token;
-  blacklistToken(token);
-  res.json({ message: "Logout successful" });
-  console.log("user loged out");
-};
+// exports.logout = async (req, res, next) => {
+//   const token = req.body.token;
+//   blacklistToken(token);
+//   res.json({ message: "Logout successful" });
+//   console.log("user loged out");
+// };
 
-async function blacklistToken(token) {
-  checkBlacklist(token);
-  await prisma.BlacklistedToken.create({
-    data: {
-      token: token,
-    },
-  });
-}
+// async function blacklistToken(token) {
+//   checkBlacklist(token);
+//   console.log(token);
+//   await prisma.BlacklistedToken.create({
+//     data: {
+//       token: token,
+//     },
+//   });
+// }
 
-async function checkBlacklist(req, res, next, token) {
-  const blacklistedToken = await prisma.BlacklistedToken.findUnique({
-    where: {
-      token: token,
-    },
-  });
-  if (blacklistedToken) {
-    return res.status(401).json({ message: "Invalid token" });
-  } else {
-    next();
-  }
-}
+// async function checkBlacklist(req, res, next, token) {
+//   const blacklistedToken = await prisma.BlacklistedToken.findUnique({
+//     where: {
+//       token: token,
+//     },
+//   });
+//   if (blacklistedToken) {
+//     return res.status(401).json({ message: "Invalid token" });
+//   } else {
+//     next();
+//   }
+// }
