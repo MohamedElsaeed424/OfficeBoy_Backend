@@ -1,13 +1,10 @@
 const { validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
+const { PrismaClient } = require("@prisma/client");
 
-const { Pool } = require("pg"); //new edit meeting
+const prisma = new PrismaClient();
 
-const { PrismaClient } = require("@prisma/client"); 
-
-const prisma = new PrismaClient(); 
 exports.signup = async (req, res, next) => {
-
   const firstname = req.body.firstname;
   const lastname = req.body.lastname;
   const email = req.body.email;
@@ -26,19 +23,19 @@ exports.signup = async (req, res, next) => {
     const hashedPassword = await bcrypt.hash(password, 12);
     const newUser = await prisma.UsersTBL.create({
       data: {
-        firstname:firstname,
-        lastname:lastname,
-        email:email,
-        role:role,
-        password:hashedPassword,
+        firstname: firstname,
+        lastname: lastname,
+        email: email,
+        role: role,
+        password: hashedPassword,
       },
     });
     console.log(newUser);
     console.log(newUser.userId);
     res
       .status(201)
-          // connect with Front end...
-      .json({ message: "User Created Successfully", userId: newUser.userid});
+      // connect with Front end...
+      .json({ message: "User Created Successfully", userId: newUser.userid });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
