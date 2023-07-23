@@ -14,12 +14,13 @@ router.put(
       .normalizeEmail()
       //-------------------------If The User Already exist--------------------------------------------
       .custom(async (value, { req }) => {
-        const user = await prisma.user.findUnique({
+        const user = await prisma.UsersTBL.findUnique({
           where: {
             email: value,
           },
         });
         if (user) {
+          console.log("cannot add user ,User already exist");
           return Promise.reject(
             "Email address ALready Exist ,Please Enter another One."
           );
@@ -34,5 +35,6 @@ router.put(
   authController.signup
 );
 
-console.log("222");
+router.post("/login", authController.login);
+
 module.exports = router;

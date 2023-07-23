@@ -1,5 +1,6 @@
 const { validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
@@ -12,6 +13,7 @@ exports.signup = async (req, res, next) => {
   const password = req.body.password;
   //---------------------------Validations--------------------------
   const errors = validationResult(req);
+  console.log(errors);
   if (!errors.isEmpty()) {
     const error = new Error("Please Try again , Validation Failed");
     error.statusCode = 422;
@@ -41,5 +43,44 @@ exports.signup = async (req, res, next) => {
       err.statusCode = 500;
     }
     next(err);
+  }
+};
+
+exports.login = async (req, res, next) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  try {
+    const user = await prisma.UsersTBL.findUnique({
+      where: {
+        email: email,
+      },
+    });
+    if (!user) {
+      const error = new Error("User Not Found , Try Signup");
+      error.statusCode = 404;
+      throw error;
+    }
+    const doMatch = await bcrypt.compare(password, user.password);
+    if (!doMatch) {
+      const error = new Error("Wrong Password");
+      error.statusCode = 401;
+      throw error;
+    }
+    //-------------------------------- Adding JWT (json web token) for a user -----------------------
+    const token = jwt.sign(
+      { email: user.email, userId: user.userid.toString() },
+      "MY_SECRET_TOKEN_GENERATED",
+      { expiresIn: "1h" }
+    );
+    //-------------------------------------------------------------------------------------------
+    res.status(200).json({ token: token, userId: user.userid.toString() });
+    console.log(`${email}: Loged in successfully`);
+    return;
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+    return err;
   }
 };
