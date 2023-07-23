@@ -19,10 +19,10 @@ exports.signup = async (req, res, next) => {
   //-------------------------Hashing The Password for security------------------
   try {
     const hashedPassword = await bcrypt.hash(password, 12);
-    // add user
+    // add user to db
 
     res.status(201).json({ message: "User Created Successfully", userId: user._id });
-    
+
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;

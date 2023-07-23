@@ -3,7 +3,7 @@ const { body } = require("express-validator");
 
 const authController = require("../controllers/auth");
 
-const router = express.Router ;
+const router = express.Router();
 
 
 router.put(
@@ -12,7 +12,7 @@ router.put(
       body("email")
         .isEmail()
         .withMessage("Please Enter a Valid Email")
-        .normalizeEmail()
+        .normalizeEmail(),
         //-------------------------If The User Already exist--------------------------------------------
         // .custom((value, { req }) => {
         //   return User.findOne({ email: value }).then((userDoc) => {
@@ -24,9 +24,10 @@ router.put(
         //   });
         // }),
       //------------------------------------------------------------------
-      ,
       body("password").isLength({ min: 5 }).isAlphanumeric().trim(),
-      body("name").trim().not().isEmpty(),
+      body("fname").trim().not().isEmpty(),
+      body("lname").trim().not().isEmpty(),
+      body("role").trim().not().isEmpty(),
     ],
     authController.signup
 );
