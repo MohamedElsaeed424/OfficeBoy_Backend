@@ -93,17 +93,16 @@ exports.logout = async (req, res, next) => {
 };
 
 async function blacklistToken(token) {
-  checkBlacklist();
-  await prisma.blacklistedToken.create({
+  checkBlacklist(token);
+  await prisma.BlacklistedToken.create({
     data: {
       token: token,
     },
   });
 }
 
-async function checkBlacklist(req, res, next) {
-  const token = req.headers.authorization.split(" ")[1];
-  const blacklistedToken = await prisma.blacklistedToken.findUnique({
+async function checkBlacklist(req, res, next, token) {
+  const blacklistedToken = await prisma.BlacklistedToken.findUnique({
     where: {
       token: token,
     },
