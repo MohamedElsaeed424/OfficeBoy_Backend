@@ -20,6 +20,7 @@ app.use((req, res, next) => {
 
 app.use("/auth" ,authRoutes) ;
 
+
 //--------------------------------Gnenral Error handling ----------------------------
 app.use((error, req, res, next) => {
     console.log(error);
@@ -29,4 +30,4 @@ app.use((error, req, res, next) => {
     res.status(status).json({ message: message, data: data });
   });
 
-app.connect(8080);
+app.listen(8080);

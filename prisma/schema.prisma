@@ -8,10 +8,10 @@ datasource db {
 }
 
 model UsersTBL {
-    User_id       Int    @id @default(autoincrement())
-    firstName String
-    lastName String
-    email    String @unique
-    role String
-    password String
+    userid    Int    @id @default(autoincrement())
+    firstname String
+    lastname  String
+    email     String @unique
+    role      String
+    password  String
 }

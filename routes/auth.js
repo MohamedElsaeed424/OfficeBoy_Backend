@@ -5,7 +5,6 @@ const authController = require("../controllers/auth");
 
 const router = express.Router();
 
-
 router.put(
     "/signup",
     [
@@ -25,11 +24,12 @@ router.put(
         // }),
       //------------------------------------------------------------------
       body("password").isLength({ min: 5 }).isAlphanumeric().trim(),
-      body("fname").trim().not().isEmpty(),
-      body("lname").trim().not().isEmpty(),
+      body("firstname").trim().not().isEmpty(),
+      body("lastname").trim().not().isEmpty(),
       body("role").trim().not().isEmpty(),
     ],
     authController.signup
 );
 
+console.log("222");
 module.exports = router ;
