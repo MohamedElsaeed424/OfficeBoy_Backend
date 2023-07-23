@@ -15,3 +15,10 @@ model UsersTBL {
     role      String
     password  String
 }
+
+model BlacklistedToken {
+    id       Int      @id @default(autoincrement())
+    token    String   @unique
+    createdAt DateTime @default(now())
+}
+
