@@ -105,7 +105,7 @@ exports.login = async (req, res, next) => {
 };
 //--------------------orders logic----------------------------
 
-app.get('/orders', async (req, res) => {
+app.get('/order', async (req, res) => {
   const orders = await prisma.ordersTBL.findMany({
     include: {
       items: true,
@@ -116,7 +116,7 @@ app.get('/orders', async (req, res) => {
   res.json(orders)
 })
 
-app.post('/orders', async (req, res) => {
+app.post('/order', async (req, res) => {
   const { orderitemid, officeid, roomid } = req.body
   const order = await prisma.OrderItemsTBL.create({
     data: {
