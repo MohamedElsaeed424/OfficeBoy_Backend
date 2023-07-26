@@ -45,13 +45,17 @@ exports.getOrders = async (req, res, next) => {
 exports.getOrder = async (req, res, next) => {
   const orderId = req.params.orderId;
   try {
-    const post = await Post.findById(postId);
-    if (!post) {
-      const error = new Error("Sorry,This Post Not Found");
+    const order = await prisma.OrdersTBL.findUnique({
+      where: {
+        orderid: orderId,
+      },
+    });
+    if (!order) {
+      const error = new Error("Sorry,This Order Not Found");
       error.statusCode = 404;
       throw error;
     }
-    res.status(200).json({ post: post });
+    res.status(200).json({ order: order });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
