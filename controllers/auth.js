@@ -117,11 +117,11 @@ app.get('/orders', async (req, res) => {
 })
 
 app.post('/orders', async (req, res) => {
-  const { items, officeid, roomid } = req.body
-  const order = await prisma.ordersTBL.create({
+  const { orderitemid, officeid, roomid } = req.body
+  const order = await prisma.OrderItemsTBL.create({
     data: {
       items: {
-        create: items,
+        create: orderitemid,
       },
       offid: {
         connect: {
@@ -135,7 +135,7 @@ app.post('/orders', async (req, res) => {
       }
     },
     include: {
-      items: true,
+      orderitemid: true,
       romid: true,
       offid: true
     },
