@@ -90,6 +90,8 @@ model BlacklistedToken {
     createdat DateTime @default(now())
 }
 
+
+
 //commands
 //------------
 // npx prisma genarate
