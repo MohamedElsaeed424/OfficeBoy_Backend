@@ -6,8 +6,8 @@ const { PrismaClient } = require("@prisma/client");
 const sgMail = require("@sendgrid/mail");
 const markdown = require("markdown-it")();
 
-const express = require('express');//new
-const app = express();//new
+const express = require("express"); //new
+const app = express(); //new
 
 sgMail.setApiKey(
   "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"
@@ -103,64 +103,6 @@ exports.login = async (req, res, next) => {
     return err;
   }
 };
-//--------------------orders logic----------------------------
-
-app.get('/order', async (req, res) => {
-  const orders = await prisma.ordersTBL.findMany({
-    include: {
-      items: true,
-      romid: true,
-      offid: true
-    },
-  })
-  res.json(orders)
-})
-
-app.post('/order', async (req, res) => {
-  const { orderitemid, officeid, roomid } = req.body
-  const order = await prisma.OrderItemsTBL.create({
-    data: {
-      items: {
-        create: orderitemid,
-      },
-      offid: {
-        connect: {
-          officeid
-        }
-      },
-      romid: {
-        connect: {
-          roomid
-        }
-      }
-    },
-    include: {
-      orderitemid: true,
-      romid: true,
-      offid: true
-    },
-  })
-  res.json(order)
-})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // exports.logout = async (req, res, next) => {
 //   const token = req.body.token;
 //   blacklistToken(token);
