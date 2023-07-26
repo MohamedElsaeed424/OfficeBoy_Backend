@@ -38,8 +38,6 @@ router.put(
 
 router.post("/login", authController.login);
 
-router.post("/order",authController.order);//new code 
-
 // router.post("/logout", authController.logout);
 
 module.exports = router;
