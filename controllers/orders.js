@@ -3,13 +3,13 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 exports.createOrder = async (req, res, next) => {
-  const items = req.body.items;
+  const itemname = req.body.itemname;
   const officeid = req.body.officeid;
   const roomid = req.body.roomid;
   const order = await prisma.ordersTBL.create({
     data: {
-      items: {
-        create: items,
+      itemname: {
+        create: itemname,
       },
       offid: {
         connect: {
@@ -23,7 +23,7 @@ exports.createOrder = async (req, res, next) => {
       },
     },
     include: {
-      items: true,
+      itemname: true,
       romid: true,
       offid: true,
     },
@@ -34,7 +34,7 @@ exports.createOrder = async (req, res, next) => {
 exports.getOrders = async (req, res, next) => {
   const orders = await prisma.ordersTBL.findMany({
     include: {
-      items: true,
+      itemname: true,
       romid: true,
       offid: true,
     },
