@@ -45,7 +45,7 @@ exports.getOrders = async (req, res, next) => {
 exports.getOrder = async (req, res, next) => {
   const orderId = req.params.orderId;
   try {
-    const order = await prisma.OrdersTBL.findUnique({
+    const order = await prisma.OrderItemsTBL.findUnique({
       where: {
         orderid: orderId,
       },
