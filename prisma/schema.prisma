@@ -50,13 +50,14 @@ model CategoriesTbl {
 }
 
 model ItemsTBL {
-    categoryid Int
-    catid      CategoriesTbl @relation(fields: [categoryid], references: [categoryid])
-    itemid     Int           @id @unique @default(autoincrement())
-    itemname   String        @unique //
-    userid   Int
-    useridd UsersTBL @relation(fields: [userid], references: [userid])
-    Order      OrdersTBL[]
+    userid      Int
+    itemid      Int           @id @unique @default(autoincrement())
+    creator     UsersTBL      @relation(fields: [userid], references: [userid])
+    categoryid  Int
+    catid       CategoriesTbl @relation(fields: [categoryid], references: [categoryid])
+    itemname    String        @unique //
+    itemimagurl String
+    Order       OrdersTBL[]
 }
 
 model OrdersTBL {
