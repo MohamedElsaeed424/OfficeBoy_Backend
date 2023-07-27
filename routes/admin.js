@@ -2,14 +2,12 @@ const express = require("express");
 
 const isAuth = require("../middleware/is-auth");
 const adminController = require("../controllers/admin");
-const { body } = require("express-validator");
 const router = express.Router();
 
-router.post(
-  "/add-item",
-  isAuth,
-  [body("itemName").isLength({ min: 5 })],
-  adminController.addItem
-);
+router.post("/add-item", isAuth, adminController.addItem);
+
+router.delete("item/:itemId", isAuth, adminController.deleteItem);
+
+router.put("item/:itemId", isAuth, adminController.updateItem);
 
 module.exports = router;
