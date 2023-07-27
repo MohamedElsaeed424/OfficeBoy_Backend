@@ -15,13 +15,14 @@ model UsersTBL {
     role      String
     password  String
     Employee  EmployeeTBL[]
+    Items     ItemsTBL[]
 }
 
 model OfficeTBL {
     officeid Int           @id @unique @default(autoincrement())
     officeno Int           @unique
     location String
-    Employee EmployeeTBL[]
+    Employee EmployeeTBL[] 
     Order    OrdersTBL[]
 }
 
@@ -53,6 +54,8 @@ model ItemsTBL {
     catid      CategoriesTbl @relation(fields: [categoryid], references: [categoryid])
     itemid     Int           @id @unique @default(autoincrement())
     itemname   String        @unique //
+    userid   Int
+    useridd UsersTBL @relation(fields: [userid], references: [userid])
     Order      OrdersTBL[]
 }
 
