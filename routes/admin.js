@@ -12,4 +12,8 @@ router.put("item/:itemId", isAuth, adminController.updateItem);
 
 router.get("item/:itemId", isAuth, adminController.getItem);
 
+router.get("item", isAuth, adminController.getNamedItem);
+
+router.get("items", isAuth, adminController.getCategoryItems);
+
 module.exports = router;
