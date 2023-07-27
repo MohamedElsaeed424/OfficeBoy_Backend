@@ -5,8 +5,9 @@ const path = require("path");
 const multer = require("multer");
 
 const authRoutes = require("./routes/auth");
-const orderRoutes = require("./routes/orders");
+// const orderRoutes = require("./routes/orders");
 const adminRoutes = require("./routes/admin");
+const officeBoyRoutes = require("./routes/officeBoy");
 
 const app = express();
 
@@ -47,7 +48,8 @@ app.use((req, res, next) => {
   next();
 });
 app.use("/admin", adminRoutes);
-app.use("/order", orderRoutes);
+// app.use("/order", orderRoutes);
+app.use("/officeBoy", officeBoyRoutes);
 app.use("/auth", authRoutes);
 
 //--------------------------------Gnenral Error handling ----------------------------

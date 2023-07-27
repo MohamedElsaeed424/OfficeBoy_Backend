@@ -12,7 +12,8 @@ exports.addItem = async (req, res, next) => {
   const itemName = req.body.itemName;
   // const itemImag = req.file.path.replace("\\", "/");
   const itemImag = req.body.itemimagurl;
-  const category = req.body.category;
+  const itemCategory = req.body.category;
+  const category = itemCategory.toUpperCase(); // to genralize category names
 
   //-------------------Add item-----------------
   try {
@@ -95,7 +96,8 @@ exports.updateItem = async (req, res, next) => {
   const itemName = req.body.itemName;
   // const itemImag = req.file.path.replace("\\", "/");
   const itemImag = req.body.itemimagurl;
-  const category = req.body.category;
+  const itemCategory = req.body.category;
+  const category = itemCategory.toUpperCase(); // to genralize category names
   // if (req.file) {
   //   itemImag = req.file.path.replace("\\", "/");
   // }
@@ -146,27 +148,25 @@ exports.updateItem = async (req, res, next) => {
   }
 };
 ///----------------------------Read item / search for item--------------------
-exports.getItem = async (req, res,next) => {
+exports.getItem = async (req, res, next) => {
   const itemId = req.params.itemId;
-  try{
-    const item = await prisma.ItemsTBL.findUnique ({
+  try {
+    const item = await prisma.ItemsTBL.findUnique({
       where: {
-        itemid : itemId,
-      }
-    })
+        itemid: itemId,
+      },
+    });
     if (!item) {
-      const error = new Error("Sorry, No Item to be get");
+      const error = new Error("Sorry, No Item to be shown");
       error.statusCode = 404;
       throw error;
     }
     console.log(item);
-    res
-      .status(200)
-      .json({item: item });
-  }catch (err) {
+    res.status(200).json({ item: item });
+  } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
     }
     next(err);
   }
-}
+};

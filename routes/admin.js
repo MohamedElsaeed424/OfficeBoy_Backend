@@ -6,10 +6,10 @@ const router = express.Router();
 
 router.post("/add-item", isAuth, adminController.addItem);
 
-router.delete("item/:itemId", isAuth, adminController.deleteItem);
+router.delete("/item/:itemId", isAuth, adminController.deleteItem);
 
-router.put("item/:itemId", isAuth, adminController.updateItem);
+router.put("/item/:itemId", isAuth, adminController.updateItem);
 
-router.get("item/:itemId", isAuth, adminController.getItem);
+router.get("/item/:itemId", isAuth, adminController.getItem);
 
 module.exports = router;
