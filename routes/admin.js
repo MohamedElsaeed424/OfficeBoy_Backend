@@ -10,4 +10,6 @@ router.delete("item/:itemId", isAuth, adminController.deleteItem);
 
 router.put("item/:itemId", isAuth, adminController.updateItem);
 
+router.get("item/:itemId", isAuth, adminController.getItem);
+
 module.exports = router;

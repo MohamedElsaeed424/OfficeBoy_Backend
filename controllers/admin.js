@@ -46,7 +46,7 @@ exports.addItem = async (req, res, next) => {
     next(err);
   }
 };
-
+//-----------------------delete item-------------
 exports.deleteItem = async (req, res, next) => {
   const itemId = req.params.itemId;
   try {
@@ -88,7 +88,7 @@ exports.deleteItem = async (req, res, next) => {
     next(err);
   }
 };
-
+//-------------edit item-----------------
 exports.updateItem = async (req, res, next) => {
   const itemId = req.params.itemId;
   const itemName = req.body.itemName;
@@ -144,3 +144,28 @@ exports.updateItem = async (req, res, next) => {
     next(err);
   }
 };
+///----------------------------Read item / search for item--------------------
+exports.getItem = async (req, res,next) => {
+  const itemId = req.params.itemId;
+  try{
+    const item = await prisma.ItemsTBL.findUnique ({
+      where: {
+        itemid : itemId,
+      }
+    })
+    if (!item) {
+      const error = new Error("Sorry, No Item to be get");
+      error.statusCode = 404;
+      throw error;
+    }
+    console.log(item);
+    res
+      .status(200)
+      .json({item: item });
+  }catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+}
