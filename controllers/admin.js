@@ -14,6 +14,7 @@ exports.addItem = async (req, res, next) => {
   const itemImag = req.body.itemimagurl;
   const category = req.body.category;
 
+  //-------------------Add item-----------------
   try {
     console.log(req.userId + " hello");
     const createdItem = await prisma.ItemsTBL.create({
