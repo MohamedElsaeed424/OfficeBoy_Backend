@@ -38,6 +38,6 @@ router.put(
 
 router.post("/login", authController.login);
 
-// router.post("/logout", authController.logout);
+router.delete("/logout", authController.logout);
 
 module.exports = router;

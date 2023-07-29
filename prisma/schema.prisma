@@ -16,6 +16,14 @@ model UsersTBL {
     password  String
     Employee  EmployeeTBL[]
     Items     ItemsTBL[]
+    Tokens    TokensTBL[]
+}
+
+model TokensTBL{
+    tokenid Int  @id @default(autoincrement())
+    refreshtoken String  
+    userid      Int
+    reftoken      UsersTBL  @relation(fields: [userid], references: [userid])
 }
 
 model OfficeTBL {
