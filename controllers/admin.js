@@ -59,9 +59,9 @@ exports.addItem = async (req, res, next) => {
   }
 };
 //-----------------------delete item-------------
+// category deleted
 exports.deleteItem = async (req, res, next) => {
   const itemId = req.params.itemId;
-
   try {
     console.log(itemId);
     console.log(parseInt(itemId));
@@ -83,15 +83,15 @@ exports.deleteItem = async (req, res, next) => {
     // fileHelper.clearImage(item.itemimagurl);
     const deletedItem = await prisma.ItemsTBL.delete({
       where: {
-        itemid: itemId,
+        itemid: parseInt(itemId),
       },
     });
     const user = await prisma.UsersTBL.findUnique({
       where: {
-        userid: req.userid,
+        userid: req.userId,
       },
     });
-    user.Items.pop(itemId);
+    // user.Items.pop(itemId);
     console.log("Item deleted successfuly!");
     res
       .status(200)
