@@ -3,6 +3,7 @@ const path = require("path");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
 const sgMail = require("@sendgrid/mail");
 const markdown = require("markdown-it")();
 
@@ -13,12 +14,21 @@ sgMail.setApiKey(
   "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"
 );
 
-const bathText = path.join(__dirname, "Emai_Design.html");
+const bathText = path.join(__dirname, "Email_Design.html");
 const emailDesignHtml = markdown.render(bathText);
 
-const prisma = new PrismaClient();
+// const catchAsync = (fn) => (req, res, next) => {
+//   return Promise.resolve(fn(req, res, next)).catch((err) => {
+//     console.log(err);
+//     next(err);
+//   });
+// };
 
-exports.signup = async (req, res, next) => {
+const catchAsync = (fn) => (req, res, next) => {
+  return Promise.resolve(fn(req, res, next)).catch((err) => next(err));
+};
+
+exports.signup = catchAsync(async (req, res, next) => {
   const firstname = req.body.firstname;
   const lastname = req.body.lastname;
   const email = req.body.email;
@@ -57,12 +67,9 @@ exports.signup = async (req, res, next) => {
       html: emailDesignHtml,
     });
   } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
-    next(err);
+    throw new Error(400, err.message);
   }
-};
+});
 //--------------------login logic----------------------------
 
 exports.login = async (req, res, next) => {
@@ -86,15 +93,84 @@ exports.login = async (req, res, next) => {
       throw error;
     }
     //-------------------------------- Adding JWT (json web token) for a user -----------------------
-    const token = jwt.sign(
+    const accessToken = generateAccessToken({ userid: user.userid });
+    const refreshToken = jwt.sign(
       { email: user.email, userId: user.userid.toString() },
-      "MY_SECRET_TOKEN_GENERATED",
-      { expiresIn: "1h" }
+      "MY_REFRESH_SECRET_TOKEN_GENERATED"
     );
+    // connection with db
+    console.log(refreshToken, user.userid);
+    const createdRefToken = await prisma.TokensTBL.create({
+      data: {
+        refreshtoken: refreshToken,
+        // createdAt: new Date(),
+        reftoken: {
+          connect: {
+            userid: user.userid,
+          },
+        },
+      },
+    });
+
+    // const createdRefToken = await prisma.TokensTBL.createOne({
+    //   data: {
+    //     refreshtoken: refreshToken,
+    //     createdAt: new Date(),
+    //     reftoken: {
+    //       connect: {
+    //         userid: user.userid,
+    //       },
+    //     },
+    //   },
+    //   //data: {
+    //   //refreshtoken: refreshToken,
+    //   //userid: user.userid,
+    //   //createdAt: new Date(),
+    //   // connect: {
+    //   //   reftoken: {
+    //   //     uderid: user.userid,
+    //   //   },
+    //   // },
+    //   // },
+    // });
     //-------------------------------------------------------------------------------------------
-    res.status(200).json({ token: token, userId: user.userid.toString() });
+    res.status(200).json({
+      accessToken: accessToken,
+      refreshToken: createdRefToken,
+      userId: user.userid.toString(),
+    });
     console.log(`${email}: Loged in successfully`);
     return;
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+    return err;
+  }
+};
+function generateAccessToken(user) {
+  return jwt.sign(
+    { email: user.email, userId: user.userid + "" },
+    "MY_ACCESS_SECRET_TOKEN_GENERATED",
+    { expiresIn: "2h" }
+  );
+}
+exports.logout = async (req, res, next) => {
+  try {
+    const refToken = req.body.refToken;
+    deletedRefToken = await prisma.TokensTBL.delete({
+      where: {
+        refreshtoken: refToken,
+      },
+    });
+    if (!deletedRefToken) {
+      const error = new Error("No Refresh token found");
+      error.statusCode = 404;
+      throw error;
+    }
+    res.status(202).json({ message: "Token deleted" });
+    ``;
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;

@@ -13,9 +13,18 @@ model UsersTBL {
     lastname  String
     email     String        @unique
     role      String
-    password  String
+    password  String 
+    //createdAt DateTime     @default(now())
     Employee  EmployeeTBL[]
-    Items     ItemsTBL[]
+    Items     ItemsTBL[]  // One-to-many relationship with ItemsTBL
+    Tokens    TokensTBL[]
+}
+
+model TokensTBL{
+    tokenid Int  @id @default(autoincrement())
+    refreshtoken String 
+    userid      Int
+    reftoken      UsersTBL  @relation(fields: [userid], references: [userid])
 }
 
 model OfficeTBL {
@@ -46,15 +55,15 @@ model EmployeeTBL {
 model CategoriesTbl {
     categoryid   Int        @id @unique @default(autoincrement())
     categoryname String     @unique //
-    Item         ItemsTBL[]
+    Item         ItemsTBL[] // One-to-many relationship with ItemsTBL
 }
 
 model ItemsTBL {
-    userid      Int
+    userid      Int   // Foreign key referencing UsersTBL
     itemid      Int           @id @unique @default(autoincrement())
-    creator     UsersTBL      @relation(fields: [userid], references: [userid])
-    categoryid  Int
-    catid       CategoriesTbl @relation(fields: [categoryid], references: [categoryid])
+    creator     UsersTBL      @relation(fields: [userid], references: [userid]) // Many-to-one relationship with UsersTBL
+    categoryid  Int   // Foreign key referencing CategoriesTbl
+    catid       CategoriesTbl @relation(fields: [categoryid], references: [categoryid]) // Many-to-one relationship with CategoriesTbl
     itemname    String        @unique //
     itemimagurl String
     Order       OrdersTBL[]
@@ -95,6 +104,7 @@ model BlacklistedToken {
 
 //commands
 //------------
+// npm run db:studio  
 // npx prisma genarate
 // npx prisma migrate dev --name init  --create-only => gererate a version of prisma table inside our db  ,geneate prise migration inside out tables
 // npx prisma migrate deploy   => deploy ur actual model user

@@ -7,6 +7,7 @@ const multer = require("multer");
 const authRoutes = require("./routes/auth");
 // const orderRoutes = require("./routes/orders");
 const adminRoutes = require("./routes/admin");
+
 const officeBoyRoutes = require("./routes/officeBoy");
 
 const app = express();
@@ -40,7 +41,7 @@ app.use(
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/images", express.static(path.join(__dirname, "images")));
 
-//---to solve the problem of CORS (diffrent ports) we should set some headers while connecting with Front end---
+//---to solve the problem of CORS (different ports) we should set some headers while connecting with Front end---
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE");

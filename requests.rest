@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 GET http://localhost:8080/posts
 Authorization: Bearer
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiS3lsZSIsImlhdCI6MTY5MDQ3MTA1N30.RtbVxB1iB6TQxoHd3MkoR84dPE0j0VdqVQF-buJMP_E
@@ -20,4 +21,28 @@ POST http://localhost:8080/login
 Content-Type: application/json
 {
     "username": "Kyle"
+=======
+GET http://localhost:8080/posts
+Authorization: Bearer
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiS3lsZSIsImlhdCI6MTY5MDQ3MTA1N30.RtbVxB1iB6TQxoHd3MkoR84dPE0j0VdqVQF-buJMP_E
+
+###
+POST http//:localhost:4000/token
+Content-Type: application/json
+{
+    "token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTA1Mzg2NTZ9.1rldQqXcqTKW3Ik1l4f-dIRnMfPVcO8S2qYqULZrHCw"
+}
+
+###
+DELETE http://localhost:4000/logout
+Content-Type: application/json
+{
+    "token" : "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTA1Mzg2NTZ9.1rldQqXcqTKW3Ik1l4f-dIRnMfPVcO8S2qYqULZrHCw"
+}
+###
+POST http://localhost:8080/login
+Content-Type: application/json
+{
+    "username": "Kyle"
+>>>>>>> 8c28a8f4cf15dc937b0f1fe57b83fe81532b8a90
 }
