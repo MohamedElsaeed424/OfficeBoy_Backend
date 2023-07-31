@@ -12,12 +12,14 @@ exports.addItem = async (req, res, next) => {
   const itemName = req.body.itemname;
   // const itemImag = req.file.path.replace("\\", "/");
   const itemImag = req.body.itemimagurl;
-  const itemCategory = req.body.categoryname;
-  console.log("itemCategory:", itemCategory);
-  const category = itemCategory.toUpperCase();
-  //const category = itemCategory.toUpperCase(); // to generalize category names
+  // const itemCategory = req.body.categoryname;
+  // console.log("itemCategory:", itemCategory);
+  // const category = itemCategory.toUpperCase();
+  const category = req.body.category;
+  //const category = itemCategory.toUpperCase(); // to genralize category names
 
   //-------------------Add item-----------------
+<<<<<<< HEAD
 //   try {
 //     const createdItem = await prisma.itemsTBL.create({
 //       data: {
@@ -78,13 +80,23 @@ exports.addItem = async (req, res, next) => {
   //const category = itemCategory.toUpperCase(); // to genralize category names
 
   //-------------------Add item-----------------
+=======
+>>>>>>> e03f12aa091da40fcca11f1c9a36c0a1641cb877
   try {
     const createdItem = await prisma.itemsTBL.create({
       data: {
         itemname: itemName,
         itemimagurl: itemImag,
+<<<<<<< HEAD
         categoryname: category,
         userid: req.userId,
+=======
+        creator: {
+          connect: {
+            userid: req.userId,
+          },
+        },
+>>>>>>> e03f12aa091da40fcca11f1c9a36c0a1641cb877
         catid: {
           create: {
             categoryname: category,
@@ -92,6 +104,7 @@ exports.addItem = async (req, res, next) => {
         },
       },
     });
+<<<<<<< HEAD
     // const createdItem = await prisma.itemsTBL.create({
     //   data: {
     //     itemname: itemName,
@@ -115,12 +128,18 @@ exports.addItem = async (req, res, next) => {
     //     userid: req.userId,
     //   },
     // });
+=======
+>>>>>>> e03f12aa091da40fcca11f1c9a36c0a1641cb877
     const user = prisma.UsersTBL.findUnique({
       where: {
         userid: req.userId,
       },
     });
+<<<<<<< HEAD
     user.Items.push(createdItem);
+=======
+    // user.Items.push(createdItem);
+>>>>>>> e03f12aa091da40fcca11f1c9a36c0a1641cb877
     console.log(createdItem);
     res
       .status(201)
@@ -140,10 +159,13 @@ exports.addItem = async (req, res, next) => {
 //-----------------------delete item-------------
 exports.deleteItem = async (req, res, next) => {
   const itemId = req.params.itemId;
+
   try {
+    console.log(itemId);
+    console.log(parseInt(itemId));
     const item = await prisma.ItemsTBL.findUnique({
       where: {
-        itemid: itemId,
+        itemid: parseInt(itemId),
       },
     });
     if (!item) {
@@ -151,12 +173,12 @@ exports.deleteItem = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
-    if (item.userid.toString() !== req.userId) {
+    if (item.userid !== req.userId) {
       const error = new Error("You Are not allowed to Delete this item");
       error.statusCode = 403;
       throw error;
     }
-    fileHelper.clearImage(item.itemimagurl);
+    // fileHelper.clearImage(item.itemimagurl);
     const deletedItem = await prisma.ItemsTBL.delete({
       where: {
         itemid: itemId,

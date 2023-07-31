@@ -95,7 +95,7 @@ exports.login = async (req, res, next) => {
     //-------------------------------- Adding JWT (json web token) for a user -----------------------
     const accessToken = generateAccessToken({ userid: user.userid });
     const refreshToken = jwt.sign(
-      { email: user.email, userId: user.userid.toString() },
+      { email: user.email, userId: user.userid },
       "MY_REFRESH_SECRET_TOKEN_GENERATED"
     );
     // connection with db
@@ -151,7 +151,7 @@ exports.login = async (req, res, next) => {
 };
 function generateAccessToken(user) {
   return jwt.sign(
-    { email: user.email, userId: user.userid + "" },
+    { email: user.email, userId: user.userid },
     "MY_ACCESS_SECRET_TOKEN_GENERATED",
     { expiresIn: "2h" }
   );
