@@ -7,6 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon app.js",
     "db:studio": "prisma studio",
+    "db:push": "prisma db push",
     "devStart": "nodemon jwt-passport.js",
     "devStartAuth": "nodemon refresh-Tokens.js"
   },
