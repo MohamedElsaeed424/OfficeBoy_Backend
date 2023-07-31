@@ -39,6 +39,28 @@ exports.getItems = async (req, res, next) => {
     next(err);
   }
 };
+exports.getItem = async (req, res, next) => {
+  const itemId = req.params.itemId;
+  try {
+    const item = await prisma.ItemsTBL.findUnique({
+      where: {
+        itemid: parseInt(itemId),
+      },
+    });
+    if (!item) {
+      const error = new Error("Sorry, No Item to be shown");
+      error.statusCode = 404;
+      throw error;
+    }
+    console.log(item);
+    res.status(200).json({ item: item });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
 
 exports.getNamedItem = async (req, res, next) => {
   const itemName = req.body.itemname;
@@ -65,12 +87,17 @@ exports.getNamedItem = async (req, res, next) => {
 };
 
 exports.getCategoryItems = async (req, res, next) => {
-  const itemCategory = req.body.category;
-  const category = itemCategory.toUpperCase(); // to genralize category names
+  // const itemCategory = req.body.category;
+  // const category = itemCategory.toUpperCase(); // to genralize category names
+  const category = req.body.category;
   try {
     const itemsForCategory = await prisma.ItemsTBL.findMany({
       where: {
-        categoryname: category,
+        catid: {
+          is: {
+            categoryname: category,
+          },
+        },
       },
     });
     if (itemsForCategory.length === 0) {
