@@ -12,10 +12,11 @@ exports.addItem = async (req, res, next) => {
   const itemName = req.body.itemname;
   // const itemImag = req.file.path.replace("\\", "/");
   const itemImag = req.body.itemimagurl;
-  const itemCategory = req.body.categoryname;
-  console.log("itemCategory:", itemCategory);
-  const category = itemCategory.toUpperCase();
-  //const category = itemCategory.toUpperCase(); // to generalize category names
+  // const itemCategory = req.body.categoryname;
+  // console.log("itemCategory:", itemCategory);
+  // const category = itemCategory.toUpperCase();
+  const category = req.body.category;
+  //const category = itemCategory.toUpperCase(); // to genralize category names
 
   //-------------------Add item-----------------
   try {
@@ -24,36 +25,32 @@ exports.addItem = async (req, res, next) => {
         itemname: itemName,
         itemimagurl: itemImag,
         creator: {
-          connect: { userid: req.userId },
+          connect: {
+            userid: req.userId,
+          },
         },
-        category: {
-          connectOrCreate: {
-            where: { categoryname: category },
-            create: { categoryname: category },
+        catid: {
+          create: {
+            categoryname: category,
           },
         },
       },
     });
-
-    const user = await prisma.usersTBL.update({
+    const user = prisma.UsersTBL.findUnique({
       where: {
         userid: req.userId,
       },
-      data: {
-        items: {
-          connect: {
-            itemid: createdItem.itemid,
-          },
-        },
-      },
     });
-
+    // user.Items.push(createdItem);
     console.log(createdItem);
-    res.status(201).json({
-      message: "Item Created Successfully",
-      item: createdItem,
-      creator: { userid: user.userid, name: user.firstname },
-    });
+    res
+      .status(201)
+      // connect with Front end...
+      .json({
+        message: "Item Created Successfully",
+        item: createdItem,
+        creator: { userid: user.userid, name: user.firstname },
+      });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -61,89 +58,16 @@ exports.addItem = async (req, res, next) => {
     next(err);
   }
 };
-
-// exports.addItem = async (req, res, next) => {
-//   //----------------------------------Check for Image Exist-------
-//   // if (!req.file) {
-//   //   const error = new Error("No image Provided");
-//   //   error.statusCode = 422;
-//   //   throw error;
-//   // }
-//   const itemName = req.body.itemname;
-//   // const itemImag = req.file.path.replace("\\", "/");
-//   const itemImag = req.body.itemimagurl;
-//   const itemCategory = req.body.categoryname;
-//   console.log("itemCategory:", itemCategory);
-//   const category = itemCategory.toUpperCase();
-//   //const category = itemCategory.toUpperCase(); // to genralize category names
-
-//   //-------------------Add item-----------------
-//   try {
-//     const createdItem = await prisma.itemsTBL.create({
-//       data: {
-//         itemname: itemName,
-//         itemimagurl: itemImag,
-//         categoryname: category,
-//         userid: req.userId,
-//         catid: {
-//           create: {
-//             categoryname: category,
-//           },
-//         },
-//       },
-//     });
-//     // const createdItem = await prisma.itemsTBL.create({
-//     //   data: {
-//     //     itemname: itemName,
-//     //     itemimagurl: itemImag,
-//     //     categoryname: category,
-//     //     userid: req.userId,
-//     //     creator: {
-//     //       connectOrCreate: {
-//     //         where: { userid: req.userId },
-//     //         create: { userid: req.userId },
-//     //       },
-//     //     },
-//     //   },
-//     // });
-//     // console.log(req.userId + " hello");
-//     // const createdItem = await prisma.ItemsTBL.create({
-//     //   data: {
-//     //     itemname: itemName,
-//     //     itemimagurl: itemImag,
-//     //     categoryname: category,
-//     //     userid: req.userId,
-//     //   },
-//     // });
-//     const user = prisma.UsersTBL.findUnique({
-//       where: {
-//         userid: req.userId,
-//       },
-//     });
-//     user.Items.push(createdItem);
-//     console.log(createdItem);
-//     res
-//       .status(201)
-//       // connect with Front end...
-//       .json({
-//         message: "Item Created Successfully",
-//         item: createdItem,
-//         creator: { userid: user.userid, name: user.firstname },
-//       });
-//   } catch (err) {
-//     if (!err.statusCode) {
-//       err.statusCode = 500;
-//     }
-//     next(err);
-//   }
-// };
 //-----------------------delete item-------------
 exports.deleteItem = async (req, res, next) => {
   const itemId = req.params.itemId;
+
   try {
+    console.log(itemId);
+    console.log(parseInt(itemId));
     const item = await prisma.ItemsTBL.findUnique({
       where: {
-        itemid: itemId,
+        itemid: parseInt(itemId),
       },
     });
     if (!item) {
@@ -151,12 +75,12 @@ exports.deleteItem = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
-    if (item.userid.toString() !== req.userId) {
+    if (item.userid !== req.userId) {
       const error = new Error("You Are not allowed to Delete this item");
       error.statusCode = 403;
       throw error;
     }
-    fileHelper.clearImage(item.itemimagurl);
+    // fileHelper.clearImage(item.itemimagurl);
     const deletedItem = await prisma.ItemsTBL.delete({
       where: {
         itemid: itemId,

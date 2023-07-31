@@ -9,6 +9,8 @@ const authRoutes = require("./routes/auth");
 const adminRoutes = require("./routes/admin");
 
 const officeBoyRoutes = require("./routes/officeBoy");
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
 
 const app = express();
 
@@ -48,7 +50,41 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type , Authorization");
   next();
 });
-
+// app.post("/token", async (req, res) => {
+//   const refreshToken = req.body.refreshToken;
+//   try {
+//     const fetchedRefToken = await prisma.TokensTBL.findUnique({
+//       where: {
+//         refreshtoken: refreshToken,
+//       },
+//     });
+//     if (!fetchedRefToken) {
+//       res.status(404).json({
+//         message: "You are not autherized",
+//       });
+//       const error = new Error("Sorry, No Item to be Updated");
+//       error.statusCode = 404;
+//       throw error;
+//     }
+//     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+//       if (err) return res.sendStatus(404);
+//       const accessToken = generateAccessToken({ userid: user.id });
+//       res.json({ accessToken: accessToken });
+//     });
+//   } catch (err) {
+//     if (!err.statusCode) {
+//       err.statusCode = 500;
+//     }
+//     // next(err);
+//   }
+// });
+// function generateAccessToken(user) {
+//   return jwt.sign(
+//     { email: user.email, userId: user.userid },
+//     "MY_ACCESS_SECRET_TOKEN_GENERATED",
+//     { expiresIn: "2h" }
+//   );
+// }
 app.use("/admin", adminRoutes);
 // app.use("/order", orderRoutes);
 app.use("/officeBoy", officeBoyRoutes);
@@ -62,7 +98,5 @@ app.use((error, req, res, next) => {
   const data = error.data;
   res.status(status).json({ message: message, data: data });
 });
-
-
 
 app.listen(8080);
