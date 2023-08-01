@@ -13,25 +13,25 @@ model UsersTBL {
     lastname  String
     email     String        @unique
     role      String
-    password  String 
+    password  String
     //createdAt DateTime     @default(now())
     Employee  EmployeeTBL[]
-    Items     ItemsTBL[]  // One-to-many relationship with ItemsTBL
+    Items     ItemsTBL[] // One-to-many relationship with ItemsTBL
     Tokens    TokensTBL[]
 }
 
-model TokensTBL{
-    tokenid Int  @id @default(autoincrement())
-    refreshtoken String 
-    userid      Int
-    reftoken      UsersTBL  @relation(fields: [userid], references: [userid])
+model TokensTBL {
+    tokenid      Int      @id @default(autoincrement())
+    refreshtoken String
+    userid       Int
+    reftoken     UsersTBL @relation(fields: [userid], references: [userid])
 }
 
 model OfficeTBL {
     officeid Int           @id @unique @default(autoincrement())
     officeno Int           @unique
     location String
-    Employee EmployeeTBL[] 
+    Employee EmployeeTBL[]
     Order    OrdersTBL[]
 }
 
@@ -60,15 +60,15 @@ model CategoriesTbl {
 }
 
 model ItemsTBL {
-    userid      Int   // Foreign key referencing UsersTBL
-    itemid      Int           @id @unique @default(autoincrement())
-    creator     UsersTBL      @relation(fields: [userid], references: [userid]) // Many-to-one relationship with UsersTBL
-    categoryid  Int   // Foreign key referencing CategoriesTbl
-    catid       CategoriesTbl @relation(fields: [categoryid], references: [categoryid]) // Many-to-one relationship with CategoriesTbl
-    itemname    String        @unique //
+    userid      Int // Foreign key referencing UsersTBL
+    itemid      Int            @id @unique @default(autoincrement())
+    creator     UsersTBL       @relation(fields: [userid], references: [userid]) // Many-to-one relationship with UsersTBL
+    categoryid  Int // Foreign key referencing CategoriesTbl
+    catid       CategoriesTbl  @relation(fields: [categoryid], references: [categoryid]) // Many-to-one relationship with CategoriesTbl
+    itemname    String         @unique //
     itemimagurl String
-    Order       OrdersTBL[]    
-    CartItems    CartItemsTBL[]
+    Order       OrdersTBL[]
+    CartItems   CartItemsTBL[]
 }
 
 model OrdersTBL {
@@ -79,36 +79,33 @@ model OrdersTBL {
     officeid Int
     offid    OfficeTBL @relation(fields: [officeid], references: [officeid])
 
-    roomid     Int
-    romid      RoomTBL         @relation(fields: [roomid], references: [roomid])
-    CartItems  CartItemsTBL[]
+    roomid    Int
+    romid     RoomTBL        @relation(fields: [roomid], references: [roomid])
+    CartItems CartItemsTBL[]
 }
 
-model CartTBL{
-    cartid Int       @id @unique @default(autoincrement())
-    empid    Int
-    employeeid    EmployeeTBL   @relation(fields: [empid], references: [empid])
+model CartTBL {
+    cartid     Int            @id @unique @default(autoincrement())
+    empid      Int
+    employeeid EmployeeTBL    @relation(fields: [empid], references: [empid])
     //Items        ItemsTBL[]
-    CartItems    CartItemsTBL[]
+    CartItems  CartItemsTBL[]
     //orderItems    OrderItemsTBL[]
     //itemid  Int
     //itemsid ItemsTBL @relation(fields: [itemid], references: [itemid])
-
-
 }
 
-model CartItemsTBL{
+model CartItemsTBL {
     cartitemid Int       @id @unique @default(autoincrement())
     //itemid Int       @unique
-    quanity Int    
-    orderid     Int
-    ordersid    OrdersTBL @relation(fields: [orderid], references: [orderid])
-    cartid      Int 
-    carttid     CartTBL? @relation(fields: [cartid], references: [cartid])
-    itemid      Int   // Foreign key referencing CategoriesTbl
-    itemids     ItemsTBL  @relation(fields: [itemid], references: [itemid]) 
-
-} 
+    quanity    Int
+    orderid    Int
+    ordersid   OrdersTBL @relation(fields: [orderid], references: [orderid])
+    cartid     Int
+    carttid    CartTBL?  @relation(fields: [cartid], references: [cartid])
+    itemid     Int // Foreign key referencing CategoriesTbl
+    itemids    ItemsTBL  @relation(fields: [itemid], references: [itemid])
+}
 
 //we have to replace OrderItemsTBL to CartItemsTBL
 // model OrderItemsTBL { //cartitems
@@ -116,7 +113,7 @@ model CartItemsTBL{
 //     quanity     Int
 //     orderid     Int
 //     ordersid    OrdersTBL @relation(fields: [orderid], references: [orderid])
-    
+
 // }
 
 enum RoleEnumType {
@@ -130,8 +127,6 @@ model BlacklistedToken {
     token     String   @unique
     createdat DateTime @default(now())
 }
-
-
 
 //commands
 //------------
