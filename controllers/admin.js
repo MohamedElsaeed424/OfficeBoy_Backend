@@ -26,7 +26,6 @@ exports.addItem = async (req, res, next) => {
     // const category = itemCategory.toUpperCase();
     const category = req.body.category;
     //const category = itemCategory.toUpperCase(); // to generalize category names
-
     //-------------------Add item-----------------
     try {
       const createdItem = await prisma.itemsTBL.create({
@@ -43,6 +42,7 @@ exports.addItem = async (req, res, next) => {
               categoryname: category,
             },
           },
+          // carttid: null,
         },
       });
       const user = prisma.UsersTBL.findUnique({
