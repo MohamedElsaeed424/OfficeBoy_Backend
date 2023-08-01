@@ -25,7 +25,7 @@ exports.addItem = async (req, res, next) => {
     // console.log("itemCategory:", itemCategory);
     // const category = itemCategory.toUpperCase();
     const category = req.body.category;
-    //const category = itemCategory.toUpperCase(); // to genralize category names
+    //const category = itemCategory.toUpperCase(); // to generalize category names
 
     //-------------------Add item-----------------
     try {

@@ -61,11 +61,12 @@ exports.getOrders = async (req, res, next) => {
 };
 
 exports.getOrder = async (req, res, next) => {
-  const orderId = req.params.orderId;
+  const CartId = req.params.CartId;
   try {
-    const order = await prisma.OrderItemsTBL.findUnique({
+    const order = await prisma.CartItemsTBL.findUnique({
+      //CartItemsTBL
       where: {
-        orderid: orderId,
+        cartid: CartId, //orderid: OrderId
       },
     });
     if (!order) {

@@ -10,6 +10,7 @@ const adminRoutes = require("./routes/admin");
 
 const officeBoyRoutes = require("./routes/officeBoy");
 const { PrismaClient } = require("@prisma/client");
+const isAuth = require("./middleware/is-auth");
 const prisma = new PrismaClient();
 
 const app = express();
@@ -89,6 +90,146 @@ app.use("/admin", adminRoutes);
 // app.use("/order", orderRoutes);
 app.use("/officeBoy", officeBoyRoutes);
 app.use("/auth", authRoutes);
+//-------------------cart logic-------------------
+app.use(express.json());
+
+// GET cart with its items
+app.get("/cart/:id", async (req, res) => {
+  const cartId = parseInt(req.params.id);
+  try {
+    //find unique cart record that matches provided cart id < related order item associated with that cart
+    const cart = await prisma.CartTBL.findUnique({
+      where: { cartid: cartId },
+      include: { CartItems: true },
+    });
+    res.json(cart);
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST new cart with items
+app.post("/cart", isAuth, async (req, res) => {
+  const { CartItems } = req.body;
+
+  if (!CartItems) {
+    throw Error("CartItems is required");
+  }
+  try {
+    //const accessToken = req.headers.authorization;
+
+    const userId = req.userId;
+
+    console.log(userId);
+
+    const user = await prisma.UsersTBL.findUnique({
+      where: {
+        userid: userId,
+      },
+    });
+    // Find the user by userid
+    // const user = await prisma.UsersTBL.findUnique({
+    //   where: {
+    //     userid: req.userId,
+    //   },
+    // });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Create a new record in the cartTBL with empId 1st code
+    // const newCart = await prisma.CartTBL.create({
+    //   data: {
+    //     creator: {
+    //       connect: {
+    //         empid: userId,
+    //       },
+    //     },
+    //     CartItems: {
+    //       createMany: {
+    //         data: CartItems,
+    //       },
+    //     },
+    //   },
+    //   include: { CartItems: true },
+    // });
+
+    // Create a new record in the cartTBL with empId 2nd code
+    // const newCart = await prisma.CartTBL.create({
+    //   data: {
+    //     creator: {
+    //       connect: {
+    //         empid: userId,
+    //       },
+    //     },
+    //     CartItems: {
+    //       createMany: {
+    //         data: CartItems,
+    //       },
+    //     },
+    //     employeeid: userId,
+    //   },
+    //   include: { CartItems: true },
+    // });
+    //3rd trail
+
+    const newCart = await prisma.CartTBL.create({
+      data: {
+        empid: userId,
+        CartItems: {
+          createMany: {
+            data: CartItems,
+          },
+        },
+      },
+      include: { CartItems: true },
+    });
+
+    res.json(newCart);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// app.post("/cart", async (req, res) => {
+//   //find unique user
+//   const user = await prisma.UsersTBL.findUnique({
+//     where: {
+//       userid: req.userId,
+//     },
+//   });
+//   console.log(user);
+//   console.log(user.userid);
+//   if (!user) {
+//     return res.status(404).json({ error: "User not found" });
+//   }
+
+//   const { CartItems } = req.body;
+//   try {
+//     // this will create new record in the cartTBL with empId
+//     const newCart = await prisma.CartTBL.create({
+//       data: {
+//         creator: {
+//           connect: {
+//             userid: user.userid,
+//           },
+//         },
+//         CartItems: {
+//           createMany: {
+//             // we are creating multiple CartItems records
+//             data: CartItems,
+//           },
+//         },
+//       },
+//       include: { CartItems: true }, // It specifies that we want to include the related CartItems associated with the newly created cart in the response.
+//     });
+//     res.json(newCart);
+//   } catch (error) {
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// });
 
 //--------------------------------Gnenral Error handling ----------------------------
 app.use((error, req, res, next) => {
