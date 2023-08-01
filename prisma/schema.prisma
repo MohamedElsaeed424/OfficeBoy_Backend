@@ -81,7 +81,7 @@ model OrdersTBL {
 
     roomid    Int
     romid     RoomTBL        @relation(fields: [roomid], references: [roomid])
-    CartItems CartItemsTBL[]
+    Cart CartTBL[]
 }
 
 model CartTBL {
@@ -90,6 +90,8 @@ model CartTBL {
     employeeid EmployeeTBL    @relation(fields: [empid], references: [empid])
     //Items        ItemsTBL[]
     CartItems  CartItemsTBL[]
+    orderid    Int
+    ordersid   OrdersTBL @relation(fields: [orderid], references: [orderid])
     //orderItems    OrderItemsTBL[]
     //itemid  Int
     //itemsid ItemsTBL @relation(fields: [itemid], references: [itemid])
@@ -99,8 +101,6 @@ model CartItemsTBL {
     cartitemid Int       @id @unique @default(autoincrement())
     //itemid Int       @unique
     quanity    Int
-    orderid    Int
-    ordersid   OrdersTBL @relation(fields: [orderid], references: [orderid])
     cartid     Int
     carttid    CartTBL?  @relation(fields: [cartid], references: [cartid])
     itemid     Int // Foreign key referencing CategoriesTbl
