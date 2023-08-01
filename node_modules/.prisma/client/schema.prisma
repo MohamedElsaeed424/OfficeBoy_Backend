@@ -67,9 +67,8 @@ model ItemsTBL {
     catid       CategoriesTbl @relation(fields: [categoryid], references: [categoryid]) // Many-to-one relationship with CategoriesTbl
     itemname    String        @unique //
     itemimagurl String
-    //cartid      Int       // Foreign key referencing CartTBL
-    //carttid     CartTBL   @relation(fields: [cartid], references: [cartid])
     Order       OrdersTBL[]    
+    CartItems    CartItemsTBL[]
 }
 
 model OrdersTBL {
@@ -106,6 +105,9 @@ model CartItemsTBL{
     ordersid    OrdersTBL @relation(fields: [orderid], references: [orderid])
     cartid      Int 
     carttid     CartTBL? @relation(fields: [cartid], references: [cartid])
+    itemid      Int   // Foreign key referencing CategoriesTbl
+    itemids     ItemsTBL  @relation(fields: [itemid], references: [itemid]) 
+
 } 
 
 //we have to replace OrderItemsTBL to CartItemsTBL

@@ -38,6 +38,7 @@ exports.createOrder = async (req, res, next) => {
   res.json(order);
 };
 
+//------------------------Search for orders------
 exports.getOrders = async (req, res, next) => {
   try {
     const orders = await prisma.ordersTBL.findMany({
@@ -59,7 +60,7 @@ exports.getOrders = async (req, res, next) => {
     next(err);
   }
 };
-
+//------------------------Search for order------
 exports.getOrder = async (req, res, next) => {
   const CartId = req.params.CartId;
   try {
