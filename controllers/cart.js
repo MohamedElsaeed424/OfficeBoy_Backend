@@ -90,7 +90,6 @@ exports.addItemsToCart = async (req, res, next) => {
         },
       });
     }
-
     const newCartItems = await prisma.CartItemsTBL.create({
       data: {
         carttid: {
