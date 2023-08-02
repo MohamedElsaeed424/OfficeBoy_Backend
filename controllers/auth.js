@@ -48,6 +48,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   try {
     const hashedPassword = await bcrypt.hash(password, 12);
     if (role == "employee") {
+      const newCart = await prisma.CartTBL.create({});
       const newUser = await prisma.UsersTBL.create({
         data: {
           firstname: firstname,
