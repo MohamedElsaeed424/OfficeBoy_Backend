@@ -43,7 +43,7 @@ model EmployeeTBL {
     officeid Int
     offid    OfficeTBL @relation(fields: [officeid], references: [officeid])
     //Cart     CartTBL[]
-     cartid Int
+    cartid Int
     carttid    CartTBL @relation(fields: [cartid], references: [cartid])
 }
 
