@@ -43,28 +43,74 @@ exports.getCartItems = async (req, res, next) => {
 
 // POST new cart with items
 exports.addItemsToCart = async (req, res, next) => {
-  const { CartItems } = req.body;
   const itemId = req.body.itemId;
+
   try {
     // Find the user by userid
-    const user = await prisma.UsersTBL.findUnique({
+    const user = await prisma.EmployeeTBL.findUnique({
       where: {
-        userid: req.userId,
+        empid: req.userId,
       },
     });
+    console.log(user.empid + " added to cart");
+    if (!user) {
+      const error = new Error("Not otherized to add items to cart");
+      error.statusCode = 404;
+      throw error;
+    }
     // Create a new record in the cartTBL with empId
-    const newCart = await prisma.CartItemsTBL.create({
+    const userWithCart = await prisma.EmployeeTBL.findUnique({
+      where: {
+        empid: req.userId,
+      },
+      include: { Cart: true },
+    });
+    let newCart;
+    if (!userWithCart) {
+      newCart = await prisma.CartTBL.create({
+        data: {
+          employeeid: {
+            connect: {
+              empid: user.empid,
+            },
+          },
+        },
+      });
+    } else {
+      newCart = await prisma.CartTBL.update({
+        where: {
+          cartid: userWithCart.cartid,
+        },
+        data: {
+          employeeid: {
+            connect: {
+              empid: user.empid,
+            },
+          },
+        },
+      });
+    }
+
+    const newCartItems = await prisma.CartItemsTBL.create({
       data: {
-        cartitemid: itemId,
-        employeeid: {
+        carttid: {
           connect: {
-            empid: req.userId,
+            cartid: newCart.cartid,
+          },
+        },
+        itemids: {
+          connect: {
+            itemid: itemId,
           },
         },
       },
-      include: { CartItems: true },
+      // include: { CartItems: true },
     });
-    res.json({ message: "added to cart successfully", newCart: newCart });
+    res.json({
+      message: "added to cart successfully",
+      newCart: newCart,
+      newCartItems: newCartItems,
+    });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;

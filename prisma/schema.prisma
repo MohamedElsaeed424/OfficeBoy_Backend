@@ -7,6 +7,21 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+//-----------------------------------------------------------------------------
+model TokensTBL {
+    tokenid      Int      @id @default(autoincrement())
+    refreshtoken String
+    userid       Int
+    reftoken     UsersTBL @relation(fields: [userid], references: [userid])
+}
+
+model BlacklistedToken {
+    id        Int      @id @default(autoincrement())
+    token     String   @unique
+    createdat DateTime @default(now())
+}
+
+//----------------------------Users-----------------------------------------------------
 model UsersTBL {
     userid    Int           @id @default(autoincrement())
     firstname String
@@ -20,13 +35,17 @@ model UsersTBL {
     Tokens    TokensTBL[]
 }
 
-model TokensTBL {
-    tokenid      Int      @id @default(autoincrement())
-    refreshtoken String
-    userid       Int
-    reftoken     UsersTBL @relation(fields: [userid], references: [userid])
+model EmployeeTBL {
+    emp      UsersTBL  @relation(fields: [empid], references: [userid])
+    empid    Int       @id @unique @default(autoincrement())
+    roomid   Int
+    romid    RoomTBL   @relation(fields: [roomid], references: [roomid])
+    officeid Int
+    offid    OfficeTBL @relation(fields: [officeid], references: [officeid])
+    Cart     CartTBL[]
 }
 
+//-------------------------------Locations--------------------------------------------------
 model OfficeTBL {
     officeid Int           @id @unique @default(autoincrement())
     officeno Int           @unique
@@ -43,15 +62,7 @@ model RoomTBL {
     Order    OrdersTBL[]
 }
 
-model EmployeeTBL {
-    emp      UsersTBL  @relation(fields: [empid], references: [userid])
-    empid    Int       @id @unique @default(autoincrement())
-    roomid   Int
-    romid    RoomTBL   @relation(fields: [roomid], references: [roomid])
-    officeid Int
-    offid    OfficeTBL @relation(fields: [officeid], references: [officeid])
-    Cart     CartTBL[]
-}
+//---------------------------------Items------------------------------------------------
 
 model CategoriesTbl {
     categoryid   Int        @id @unique @default(autoincrement())
@@ -71,6 +82,7 @@ model ItemsTBL {
     CartItems   CartItemsTBL[]
 }
 
+//---------------------------------Orders------------------------------------------------
 model OrdersTBL {
     itemid  Int
     itemsid ItemsTBL @relation(fields: [itemid], references: [itemid])
@@ -79,9 +91,9 @@ model OrdersTBL {
     officeid Int
     offid    OfficeTBL @relation(fields: [officeid], references: [officeid])
 
-    roomid    Int
-    romid     RoomTBL        @relation(fields: [roomid], references: [roomid])
-    Cart CartTBL[]
+    roomid Int
+    romid  RoomTBL @relation(fields: [roomid], references: [roomid])
+    // Cart   CartTBL[]
 }
 
 model CartTBL {
@@ -90,21 +102,20 @@ model CartTBL {
     employeeid EmployeeTBL    @relation(fields: [empid], references: [empid])
     //Items        ItemsTBL[]
     CartItems  CartItemsTBL[]
-    orderid    Int
-    ordersid   OrdersTBL @relation(fields: [orderid], references: [orderid])
+    // orderid    Int
+    // ordersid   OrdersTBL      @relation(fields: [orderid], references: [orderid])
     //orderItems    OrderItemsTBL[]
     //itemid  Int
     //itemsid ItemsTBL @relation(fields: [itemid], references: [itemid])
 }
 
 model CartItemsTBL {
-    cartitemid Int       @id @unique @default(autoincrement())
-    //itemid Int       @unique
-    quanity    Int
+    cartitemid Int      @id @unique @default(autoincrement())
+    // quanity    Int
     cartid     Int
-    carttid    CartTBL?  @relation(fields: [cartid], references: [cartid])
+    carttid    CartTBL? @relation(fields: [cartid], references: [cartid])
     itemid     Int // Foreign key referencing CategoriesTbl
-    itemids    ItemsTBL  @relation(fields: [itemid], references: [itemid])
+    itemids    ItemsTBL @relation(fields: [itemid], references: [itemid])
 }
 
 //we have to replace OrderItemsTBL to CartItemsTBL
@@ -120,12 +131,6 @@ enum RoleEnumType {
     admin
     employee
     officeBoy
-}
-
-model BlacklistedToken {
-    id        Int      @id @default(autoincrement())
-    token     String   @unique
-    createdat DateTime @default(now())
 }
 
 //commands

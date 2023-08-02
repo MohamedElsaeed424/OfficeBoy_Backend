@@ -34,6 +34,8 @@ exports.signup = catchAsync(async (req, res, next) => {
   const email = req.body.email;
   const role = req.body.role;
   const password = req.body.password;
+  const roomId = req.body.roomId;
+  const officeId = req.body.officeId;
   //---------------------------Validations--------------------------
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -45,21 +47,57 @@ exports.signup = catchAsync(async (req, res, next) => {
   //-------------------------Hashing The Password for security------------------
   try {
     const hashedPassword = await bcrypt.hash(password, 12);
-    const newUser = await prisma.UsersTBL.create({
-      data: {
-        firstname: firstname,
-        lastname: lastname,
-        email: email,
-        role: role,
-        password: hashedPassword,
-      },
-    });
-    console.log(newUser);
-
-    res
-      .status(201)
-      // connect with Front end...
-      .json({ message: "User Created Successfully", userId: newUser.userid });
+    if (role == "employee") {
+      const newUser = await prisma.UsersTBL.create({
+        data: {
+          firstname: firstname,
+          lastname: lastname,
+          email: email,
+          role: role,
+          password: hashedPassword,
+        },
+      });
+      const newEmployee = await prisma.EmployeeTBL.create({
+        data: {
+          emp: {
+            connect: {
+              userid: newUser.userid,
+            },
+          },
+          offid: {
+            connect: {
+              officeid: officeId,
+            },
+          },
+          romid: {
+            connect: {
+              roomid: roomId,
+            },
+          },
+        },
+      });
+      res
+        .status(201)
+        // connect with Front end...
+        .json({
+          message: "User Created Successfully",
+          userId: newEmployee.empid,
+        });
+    } else if (role == "admin") {
+      const newUser = await prisma.UsersTBL.create({
+        data: {
+          firstname: firstname,
+          lastname: lastname,
+          email: email,
+          role: role,
+          password: hashedPassword,
+        },
+      });
+      res
+        .status(201)
+        // connect with Front end...
+        .json({ message: "User Created Successfully", userId: newUser.userid });
+    }
     sgMail.send({
       to: email,
       from: "postman.mord@gmail.com",
@@ -67,7 +105,11 @@ exports.signup = catchAsync(async (req, res, next) => {
       html: emailDesignHtml,
     });
   } catch (err) {
-    throw new Error(400, err.message);
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+    return err;
   }
 });
 //--------------------login logic----------------------------
