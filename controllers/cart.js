@@ -117,3 +117,20 @@ exports.addItemsToCart = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.editItemInCart = async (req, res, next) => {
+  const itemId = req.params.ItemId;
+
+  try {
+    const item = await prisma.CartItemsTBL.findUnique({
+      where: {
+        itemid: itemId,
+      },
+    });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
