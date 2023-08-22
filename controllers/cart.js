@@ -135,94 +135,85 @@ exports.addItemsToCart = async (req, res, next) => {
     next(err);
   }
 };
-//////////work code
-// exports.addItemsToCart = async (req, res, next) => {
-//   const itemId = req.body.itemId;
-
-//   try {
-//     // Find the user by userid
-//     const user = await prisma.EmployeeTBL.findUnique({
-//       where: {
-//         empid: req.userId,
-//       },
-//     });
-//     console.log(user.empid + " added to cart");
-//     if (!user) {
-//       const error = new Error("Not authorized to add items to cart");
-//       error.statusCode = 404;
-//       throw error;
-//     }
-//     // Create a new record in the cartTBL with empId
-//     const userWithCart = await prisma.EmployeeTBL.findUnique({
-//       where: {
-//         empid: req.userId,
-//       },
-//       //include: { Cart: true },
-//     });
-//     let newCart;
-//     console.log("userWithCart");
-//     if (!userWithCart.Cart) {
-//       newCart = await prisma.CartTBL.create({
-//         data: {
-//           employeeid: {
-//             connect: {
-//               empid: user.empid,
-//             },
-//           },
-//         },
-//       });
-//     } else {
-//       newCart = await prisma.CartTBL.update({
-//         where: {
-//           cartid: userWithCart.cartid,
-//         },
-//         data: {
-//           employeeid: {
-//             connect: {
-//               empid: user.empid,
-//             },
-//           },
-//         },
-//       });
-//     }
-//     const newCartItems = await prisma.CartItemsTBL.create({
-//       data: {
-//         carttid: {
-//           connect: {
-//             cartid: newCart.cartid,
-//           },
-//         },
-//         itemids: {
-//           connect: {
-//             itemid: itemId,
-//           },
-//         },
-//       },
-//       // include: { CartItems: true },
-//     });
-
-//     res.json({
-//       message: "added to cart successfully",
-//       newCart: newCart,
-//       newCartItems: newCartItems,
-//     });
-//   } catch (err) {
-//     if (!err.statusCode) {
-//       err.statusCode = 500;
-//     }
-//     next(err);
-//   }
-// };
 
 exports.editItemInCart = async (req, res, next) => {
-  const itemId = req.params.ItemId;
-
+  const itemId = req.params.itemId;
+  const incOrDec = req.body.incOrDec;
   try {
-    const item = await prisma.CartItemsTBL.findUnique({
+    const user = await prisma.EmployeeTBL.findUnique({
       where: {
-        itemid: itemId,
+        empid: req.userId,
       },
     });
+    if (!user) {
+      const error = new Error("Not authorized to add items to cart");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    let userCart = await prisma.CartTBL.findFirst({
+      where: {
+        employeeid: {
+          empid: user.empid,
+        },
+      },
+    });
+
+    let cartItem = await prisma.CartItemsTBL.findFirst({
+      where: {
+        carttid: {
+          cartid: userCart.cartid,
+        },
+        itemids: {
+          itemid: itemId,
+        },
+      },
+    });
+
+    if (cartItem) {
+      const quanity = cartItem.quanity;
+      console.log("quantity :", quanity);
+      // If the cart item exists,Check for the quantaty the quantity
+      if (incOrDec == 1) {
+        cartItem = await prisma.CartItemsTBL.update({
+          where: {
+            cartitemid: cartItem.cartitemid,
+          },
+          data: {
+            quanity: cartItem.quanity + 1,
+          },
+        });
+        console.log("incresed");
+        res.status(200).json({
+          message: "Item increased in Cart ",
+          DecOrInc: incOrDec,
+          Item: cartItem,
+        });
+      } else if (incOrDec == 0) {
+        if (quanity > 0) {
+          cartItem = await prisma.CartItemsTBL.update({
+            where: {
+              cartitemid: cartItem.cartitemid,
+            },
+            data: {
+              quanity: cartItem.quanity - 1,
+            },
+          });
+          console.log("decreased");
+          res.status(200).json({
+            message: "Item decresed in Cart ",
+            DecOrInc: incOrDec,
+            Item: cartItem,
+          });
+        } else {
+          res.status(403).json({ message: "You can not decrease any more" });
+        }
+      }
+    } else {
+      const error = new Error("There is no item to edit on");
+      error.statusCode = 404;
+      throw error;
+    }
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;

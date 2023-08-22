@@ -10,9 +10,9 @@ const markdown = require("markdown-it")();
 const express = require("express"); //new
 const app = express(); //new
 
-sgMail.setApiKey(
-  "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"
-);
+// sgMail.setApiKey(
+//   "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"
+// );
 
 const bathText = path.join(__dirname, "Email_Design.html");
 const emailDesignHtml = markdown.render(bathText);
@@ -101,12 +101,12 @@ exports.signup = catchAsync(async (req, res, next) => {
         // connect with Front end...
         .json({ message: "User Created Successfully", userId: newUser.userid });
     }
-    sgMail.send({
-      to: email,
-      from: "postman.mord@gmail.com",
-      subject: "Your Signup to postman succeeded!",
-      html: emailDesignHtml,
-    });
+    // sgMail.send({
+    //   to: email,
+    //   from: "postman.mord@gmail.com",
+    //   subject: "Your Signup to postman succeeded!",
+    //   html: emailDesignHtml,
+    // });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
