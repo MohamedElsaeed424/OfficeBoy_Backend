@@ -114,7 +114,7 @@ model CartTBL {
 
 model CartItemsTBL {
     cartitemid Int      @id @unique @default(autoincrement())
-    // quanity    Int
+    quanity    Int
     cartid     Int
     carttid    CartTBL? @relation(fields: [cartid], references: [cartid])
     itemid     Int // Foreign key referencing CategoriesTbl

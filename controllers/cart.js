@@ -41,12 +41,12 @@ exports.getCartItems = async (req, res, next) => {
   }
 };
 
-// POST new cart with items
+// // POST new cart with items
 exports.addItemsToCart = async (req, res, next) => {
   const itemId = req.body.itemId;
 
   try {
-    // Find the user by userid
+    //Find the user by userid
     const user = await prisma.EmployeeTBL.findUnique({
       where: {
         empid: req.userId,
@@ -54,33 +54,22 @@ exports.addItemsToCart = async (req, res, next) => {
     });
     console.log(user.empid + " added to cart");
     if (!user) {
-      const error = new Error("Not otherized to add items to cart");
+      const error = new Error("Not authorized to add items to cart");
       error.statusCode = 404;
       throw error;
     }
-    // Create a new record in the cartTBL with empId
-    const userWithCart = await prisma.EmployeeTBL.findUnique({
+
+    // Find the user's cart or create a new cart if it doesn't exist
+    let userCart = await prisma.CartTBL.findFirst({
       where: {
-        empid: req.userId,
+        employeeid: {
+          empid: user.empid,
+        },
       },
-      include: { Cart: true },
     });
-    let newCart;
-    if (!userWithCart) {
-      newCart = await prisma.CartTBL.create({
-        data: {
-          employeeid: {
-            connect: {
-              empid: user.empid,
-            },
-          },
-        },
-      });
-    } else {
-      newCart = await prisma.CartTBL.update({
-        where: {
-          cartid: userWithCart.cartid,
-        },
+
+    if (!userCart) {
+      userCart = await prisma.CartTBL.create({
         data: {
           employeeid: {
             connect: {
@@ -90,25 +79,52 @@ exports.addItemsToCart = async (req, res, next) => {
         },
       });
     }
-    const newCartItems = await prisma.CartItemsTBL.create({
-      data: {
+
+    // Find the cart item for the given item and user cart
+    let cartItem = await prisma.CartItemsTBL.findFirst({
+      where: {
         carttid: {
-          connect: {
-            cartid: newCart.cartid,
-          },
+          cartid: userCart.cartid,
         },
         itemids: {
-          connect: {
-            itemid: itemId,
-          },
+          itemid: itemId,
         },
       },
-      // include: { CartItems: true },
     });
+
+    if (cartItem) {
+      // If the cart item exists, increase the quantity
+      cartItem = await prisma.CartItemsTBL.update({
+        where: {
+          cartitemid: cartItem.cartitemid,
+        },
+        data: {
+          quanity: cartItem.quanity + 1,
+        },
+      });
+    } else {
+      // If the cart item doesn't exist, create a new cart item
+      cartItem = await prisma.CartItemsTBL.create({
+        data: {
+          carttid: {
+            connect: {
+              cartid: userCart.cartid,
+            },
+          },
+          itemids: {
+            connect: {
+              itemid: itemId,
+            },
+          },
+          quanity: 1,
+        },
+      });
+    }
+
     res.json({
-      message: "added to cart successfully",
-      newCart: newCart,
-      newCartItems: newCartItems,
+      message: "Added to cart successfully",
+      userCart: userCart,
+      cartItem: cartItem,
     });
   } catch (err) {
     if (!err.statusCode) {
@@ -117,3 +133,81 @@ exports.addItemsToCart = async (req, res, next) => {
     next(err);
   }
 };
+//////////work code
+// exports.addItemsToCart = async (req, res, next) => {
+//   const itemId = req.body.itemId;
+
+//   try {
+//     // Find the user by userid
+//     const user = await prisma.EmployeeTBL.findUnique({
+//       where: {
+//         empid: req.userId,
+//       },
+//     });
+//     console.log(user.empid + " added to cart");
+//     if (!user) {
+//       const error = new Error("Not authorized to add items to cart");
+//       error.statusCode = 404;
+//       throw error;
+//     }
+//     // Create a new record in the cartTBL with empId
+//     const userWithCart = await prisma.EmployeeTBL.findUnique({
+//       where: {
+//         empid: req.userId,
+//       },
+//       //include: { Cart: true },
+//     });
+//     let newCart;
+//     console.log("userWithCart");
+//     if (!userWithCart.Cart) {
+//       newCart = await prisma.CartTBL.create({
+//         data: {
+//           employeeid: {
+//             connect: {
+//               empid: user.empid,
+//             },
+//           },
+//         },
+//       });
+//     } else {
+//       newCart = await prisma.CartTBL.update({
+//         where: {
+//           cartid: userWithCart.cartid,
+//         },
+//         data: {
+//           employeeid: {
+//             connect: {
+//               empid: user.empid,
+//             },
+//           },
+//         },
+//       });
+//     }
+//     const newCartItems = await prisma.CartItemsTBL.create({
+//       data: {
+//         carttid: {
+//           connect: {
+//             cartid: newCart.cartid,
+//           },
+//         },
+//         itemids: {
+//           connect: {
+//             itemid: itemId,
+//           },
+//         },
+//       },
+//       // include: { CartItems: true },
+//     });
+
+//     res.json({
+//       message: "added to cart successfully",
+//       newCart: newCart,
+//       newCartItems: newCartItems,
+//     });
+//   } catch (err) {
+//     if (!err.statusCode) {
+//       err.statusCode = 500;
+//     }
+//     next(err);
+//   }
+// };

@@ -1,0 +1,10 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\controllers",
+    "\\middleware",
+    "\\prisma"
+  ],
+  "SelectedNode": "\\middleware\\is-auth.js",
+  "PreviewInSolutionExplorer": false
+}

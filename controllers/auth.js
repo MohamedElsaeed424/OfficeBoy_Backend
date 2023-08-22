@@ -47,8 +47,9 @@ exports.signup = catchAsync(async (req, res, next) => {
   //-------------------------Hashing The Password for security------------------
   try {
     const hashedPassword = await bcrypt.hash(password, 12);
+    //---------------------Check Employee Role----------------------------------
     if (role == "employee") {
-      const newCart = await prisma.CartTBL.create({});
+      //const newCart = await prisma.CartTBL.create({});
       const newUser = await prisma.UsersTBL.create({
         data: {
           firstname: firstname,
@@ -84,6 +85,7 @@ exports.signup = catchAsync(async (req, res, next) => {
           message: "User Created Successfully",
           userId: newEmployee.empid,
         });
+      //---------------------Check Admin Role---------------------------------
     } else if (role == "admin") {
       const newUser = await prisma.UsersTBL.create({
         data: {
@@ -196,7 +198,7 @@ function generateAccessToken(user) {
   return jwt.sign(
     { email: user.email, userId: user.userid },
     "MY_ACCESS_SECRET_TOKEN_GENERATED",
-    { expiresIn: "2h" }
+    { expiresIn: "4h" }
   );
 }
 exports.logout = async (req, res, next) => {
