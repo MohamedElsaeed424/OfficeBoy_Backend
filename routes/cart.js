@@ -12,4 +12,6 @@ router.get("/cart-Items/:cartId", isAuth, cartController.getCartItems);
 
 router.post("/cart-Item", isAuth, cartController.addItemsToCart);
 
+router.put("/cart-Item/:ItemId", isAuth, cartController.editItemInCart);
+
 module.exports = router;
