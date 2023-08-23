@@ -8,7 +8,7 @@ const authRoutes = require("./routes/auth");
 // const orderRoutes = require("./routes/orders");
 const adminRoutes = require("./routes/admin");
 const cartRoutes = require("./routes/cart");
-
+const categoriesRoutes = require("./routes/categories");
 const officeBoyRoutes = require("./routes/officeBoy");
 const { PrismaClient } = require("@prisma/client");
 const isAuth = require("./middleware/is-auth");
@@ -92,6 +92,7 @@ app.use("/admin", adminRoutes);
 app.use("/officeBoy", officeBoyRoutes);
 app.use("/auth", authRoutes);
 app.use("/cart", cartRoutes);
+app.use("/categories", categoriesRoutes);
 //--------------------------------Gnenral Error handling ----------------------------
 app.use((error, req, res, next) => {
   console.log(error);
