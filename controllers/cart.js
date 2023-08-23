@@ -2,6 +2,7 @@
 
 const express = require("express");
 const { PrismaClient } = require("@prisma/client");
+const { use } = require("passport");
 
 const prisma = new PrismaClient();
 const app = express();
@@ -238,10 +239,14 @@ exports.deleteItemFromCart = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
+
     let userCart = await prisma.CartTBL.findFirst({
       where: {
         employeeid: {
           empid: user.empid,
+        },
+        CartItems: {
+          cartitemid: itemId,
         },
       },
     });
@@ -260,11 +265,19 @@ exports.deleteItemFromCart = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     } else {
+      if (userCart.empid !== req.userId) {
+        const error = new Error(
+          "You Are not allowed to Delete this item from cart"
+        );
+        error.statusCode = 403;
+        throw error;
+      }
       const deletedItemFromCategory = await prisma.CartItemsTBL.delete({
         where: {
           cartitemid: cartItem.cartitemid,
         },
       });
+      console.log(userCart.empid, "deleted From cart");
       console.log("Item deleted successfuly from cart!");
       res.status(200).json({
         message: "Item deleted Successfuly from cart",
