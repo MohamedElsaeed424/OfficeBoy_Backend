@@ -80,6 +80,8 @@ model ItemsTBL {
     catid       CategoriesTbl  @relation(fields: [categoryid], references: [categoryid]) // Many-to-one relationship with CategoriesTbl
     itemname    String         @unique //
     itemimagurl String
+    itemidescription String  @unique
+    itemsize       String  @unique
     Order       OrdersTBL[]
     CartItems   CartItemsTBL[]
 }
