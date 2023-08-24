@@ -47,6 +47,7 @@ model EmployeeTBL {
     // carttid  CartTBL   @relation(fields: [cartid], references: [cartid])
 }
 
+
 //-------------------------------Locations--------------------------------------------------
 model OfficeTBL {
     officeid Int           @id @unique @default(autoincrement())
