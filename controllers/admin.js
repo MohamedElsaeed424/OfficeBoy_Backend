@@ -11,7 +11,7 @@ exports.addItem = async (req, res, next) => {
   console.log(user);
   console.log(user.userid);
   console.log(user.role);
-  if (user.role == "admin") {
+  if (user.role == "Admin") {
     //----------------------------------Check for Image Exist-------
     // if (!req.file) {
     //   const error = new Error("No image Provided");
@@ -25,27 +25,55 @@ exports.addItem = async (req, res, next) => {
     // console.log("itemCategory:", itemCategory);
     // const category = itemCategory.toUpperCase();
     const category = req.body.category;
+    const description = req.body.description;
+
     //const category = itemCategory.toUpperCase(); // to generalize category names
     //-------------------Add item-----------------
     try {
+      const categoryCheck = await prisma.CategoriesTbl.findUnique({
+        where: {
+          categoryname: category,
+        },
+      });
+      const itemNameCheck = await prisma.ItemsTBL.findUnique({
+        where: {
+          itemname: itemName,
+        },
+      });
+      if (itemNameCheck) {
+        res.status(403).json({ message: "item name already exist" });
+        const error = new Error("item name already exist");
+        error.statusCode = 403;
+        error.data = errors.array();
+        throw error;
+      }
+      if (!categoryCheck) {
+        res.status(403).json({ message: "Category dosen't exist" });
+        const error = new Error("Category dosen't exist");
+        error.statusCode = 403;
+        error.data = errors.array();
+        throw error;
+      }
+
       const createdItem = await prisma.itemsTBL.create({
         data: {
           itemname: itemName,
           itemimagurl: itemImag,
+          itemidescription: description,
           creator: {
             connect: {
               userid: req.userId,
             },
           },
           catid: {
-            create: {
+            connect: {
               categoryname: category,
             },
           },
           // carttid: null,
         },
       });
-      const user = prisma.UsersTBL.findUnique({
+      const user = await prisma.UsersTBL.findUnique({
         where: {
           userid: req.userId,
         },
@@ -82,7 +110,7 @@ exports.deleteItem = async (req, res, next) => {
       userid: req.userId,
     },
   });
-  if (user.role == "admin") {
+  if (user.role == "Admin") {
     const itemId = req.params.itemId;
     try {
       console.log(itemId);
@@ -140,7 +168,7 @@ exports.updateItem = async (req, res, next) => {
       userid: req.userId,
     },
   });
-  if (user.role == "admin") {
+  if (user.role == "Admin") {
     const itemId = req.params.itemId;
     const itemName = req.body.itemName;
     // const itemImag = req.file.path.replace("\\", "/");
@@ -220,7 +248,7 @@ exports.getItem = async (req, res, next) => {
     },
   });
   console.log(user.role);
-  if (user.role == "admin") {
+  if (user.role == "Admin") {
     const itemId = req.params.itemId;
     try {
       const item = await prisma.ItemsTBL.findUnique({

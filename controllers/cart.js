@@ -2,6 +2,7 @@
 
 const express = require("express");
 const { PrismaClient } = require("@prisma/client");
+const { use } = require("passport");
 
 const prisma = new PrismaClient();
 const app = express();
@@ -46,6 +47,7 @@ exports.getCartItems = async (req, res, next) => {
 // // POST new cart with items
 exports.addItemsToCart = async (req, res, next) => {
   const itemId = req.body.itemId;
+  const size = req.body.itemSize;
 
   try {
     //Find the user by userid
@@ -54,6 +56,7 @@ exports.addItemsToCart = async (req, res, next) => {
         empid: req.userId,
       },
     });
+    console.log(user);
     console.log(user.empid + " added to cart");
     if (!user) {
       const error = new Error("Not authorized to add items to cart");
@@ -108,6 +111,7 @@ exports.addItemsToCart = async (req, res, next) => {
       // If the cart item doesn't exist, create a new cart item
       cartItem = await prisma.CartItemsTBL.create({
         data: {
+          itemsize: size,
           carttid: {
             connect: {
               cartid: userCart.cartid,
@@ -213,6 +217,72 @@ exports.editItemInCart = async (req, res, next) => {
       const error = new Error("There is no item to edit on");
       error.statusCode = 404;
       throw error;
+    }
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
+exports.deleteItemFromCart = async (req, res, next) => {
+  const itemId = req.body.itemId;
+  try {
+    const user = await prisma.EmployeeTBL.findUnique({
+      where: {
+        empid: req.userId,
+      },
+    });
+    if (!user) {
+      const error = new Error("Not authorized to delete items from cart");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    let userCart = await prisma.CartTBL.findFirst({
+      where: {
+        employeeid: {
+          empid: user.empid,
+        },
+        CartItems: {
+          cartitemid: itemId,
+        },
+      },
+    });
+    let cartItem = await prisma.CartItemsTBL.findFirst({
+      where: {
+        itemids: {
+          itemid: itemId,
+        },
+      },
+    });
+    if (!cartItem) {
+      res
+        .status(404)
+        .json({ message: "Item Doesnot  Exist in the cart to be deleted" });
+      const error = new Error("Item Doesnot  Exist in the cart to be deleted");
+      error.statusCode = 404;
+      throw error;
+    } else {
+      if (userCart.empid !== req.userId) {
+        const error = new Error(
+          "You Are not allowed to Delete this item from cart"
+        );
+        error.statusCode = 403;
+        throw error;
+      }
+      const deletedItemFromCategory = await prisma.CartItemsTBL.delete({
+        where: {
+          cartitemid: cartItem.cartitemid,
+        },
+      });
+      console.log(userCart.empid, "deleted From cart");
+      console.log("Item deleted successfuly from cart!");
+      res.status(200).json({
+        message: "Item deleted Successfuly from cart",
+        deletedItem: deletedItemFromCategory,
+      });
     }
   } catch (err) {
     if (!err.statusCode) {

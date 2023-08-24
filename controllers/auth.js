@@ -8,6 +8,7 @@ const sgMail = require("@sendgrid/mail");
 const markdown = require("markdown-it")();
 
 const express = require("express"); //new
+const { off } = require("process");
 const app = express(); //new
 
 // sgMail.setApiKey(
@@ -50,6 +51,25 @@ exports.signup = catchAsync(async (req, res, next) => {
     //---------------------Check Employee Role----------------------------------
     if (role == "employee") {
       //const newCart = await prisma.CartTBL.create({});
+      const roomCheck = await prisma.RoomTBL.findUnique({
+        where: {
+          roomid: roomId,
+        },
+      });
+      const officeCheck = await prisma.OfficeTBL.findUnique({
+        where: {
+          officeid: officeId,
+        },
+      });
+      console.log("room: ", roomCheck);
+      console.log("office: ", officeCheck);
+      if (officeCheck && roomCheck) {
+        res.status(403).json({ message: "Please enter valid room or office" });
+        const error = new Error("Please Try enter valid room or office ");
+        error.statusCode = 403;
+        error.data = errors.array();
+        throw error;
+      }
       const newUser = await prisma.UsersTBL.create({
         data: {
           firstname: firstname,
@@ -86,7 +106,7 @@ exports.signup = catchAsync(async (req, res, next) => {
           userId: newEmployee.empid,
         });
       //---------------------Check Admin Role---------------------------------
-    } else if (role == "admin") {
+    } else if (role == "Admin") {
       const newUser = await prisma.UsersTBL.create({
         data: {
           firstname: firstname,

@@ -14,4 +14,6 @@ router.post("/cart-Item", isAuth, cartController.addItemsToCart);
 
 router.put("/cart-Item/:ItemId", isAuth, cartController.editItemInCart);
 
+router.delete("/cart-Item/:ItemId", isAuth, cartController.deleteItemFromCart);
+
 module.exports = router;

@@ -74,17 +74,16 @@ model CategoriesTbl {
 }
 
 model ItemsTBL {
-    userid      Int // Foreign key referencing UsersTBL
-    itemid      Int            @id @unique @default(autoincrement())
-    creator     UsersTBL       @relation(fields: [userid], references: [userid]) // Many-to-one relationship with UsersTBL
-    categoryid  Int // Foreign key referencing CategoriesTbl
-    catid       CategoriesTbl  @relation(fields: [categoryid], references: [categoryid]) // Many-to-one relationship with CategoriesTbl
-    itemname    String         @unique //
-    itemimagurl String
-    itemidescription String  @unique
-    itemsize       String  @unique
-    Order       OrdersTBL[]
-    CartItems   CartItemsTBL[]
+    userid           Int // Foreign key referencing UsersTBL
+    itemid           Int            @id @unique @default(autoincrement())
+    creator          UsersTBL       @relation(fields: [userid], references: [userid]) // Many-to-one relationship with UsersTBL
+    categoryid       Int // Foreign key referencing CategoriesTbl
+    catid            CategoriesTbl  @relation(fields: [categoryid], references: [categoryid]) // Many-to-one relationship with CategoriesTbl
+    itemname         String         @unique //
+    itemimagurl      String
+    itemidescription String
+    Order            OrdersTBL[]
+    CartItems        CartItemsTBL[]
 }
 
 //---------------------------------Orders------------------------------------------------
@@ -119,6 +118,7 @@ model CartItemsTBL {
     cartitemid Int      @id @unique @default(autoincrement())
     quanity    Int
     cartid     Int
+    itemsize   String   @unique
     carttid    CartTBL? @relation(fields: [cartid], references: [cartid])
     itemid     Int // Foreign key referencing CategoriesTbl
     itemids    ItemsTBL @relation(fields: [itemid], references: [itemid])
