@@ -1,7 +1,7 @@
 const express = require("express");
 
-const isAuth = require("../middleware/is-auth");
-const categoriesController = require("../controllers/categories");
+const isAuth = require("../../middleware/is-auth");
+const categoriesController = require("../../controllers/admin/categories");
 const router = express.Router();
 
 router.post("/add-category", isAuth, categoriesController.addCategory);

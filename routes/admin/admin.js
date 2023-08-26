@@ -1,12 +1,10 @@
 const express = require("express");
 
-const isAuth = require("../middleware/is-auth");
-const adminController = require("../controllers/admin");
+const isAuth = require("../../middleware/is-auth");
+const adminController = require("../../controllers/admin/admin");
 const router = express.Router();
 
 router.post("/add-item", isAuth, adminController.addItem);
-
-router.post("/add-site-data", isAuth, adminController.addSiteData);
 
 router.delete("/item/:itemId", isAuth, adminController.deleteItem);
 
