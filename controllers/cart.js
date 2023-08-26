@@ -121,15 +121,23 @@ exports.addItemsToCart = async (req, res, next) => {
     });
 
     if (cartItem) {
+      const quanity = cartItem.quanity;
+      console.log("quantity :", quanity);
       // If the cart item exists, increase the quantity
-      cartItem = await prisma.CartItemsTBL.update({
-        where: {
-          cartitemid: cartItem.cartitemid,
-        },
-        data: {
-          quanity: cartItem.quanity + 1,
-        },
-      });
+      if (quanity < 5) {
+        cartItem = await prisma.CartItemsTBL.update({
+          where: {
+            cartitemid: cartItem.cartitemid,
+          },
+          data: {
+            quanity: cartItem.quanity + 1,
+          },
+        });
+      } else {
+        res
+          .status(403)
+          .json({ message: "You can not Add this item to the cart any more" });
+      }
     } else {
       // If the cart item doesn't exist, create a new cart item
       cartItem = await prisma.CartItemsTBL.create({
