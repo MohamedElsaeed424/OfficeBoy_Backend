@@ -6,6 +6,8 @@ const router = express.Router();
 
 router.post("/add-item", isAuth, adminController.addItem);
 
+router.post("/add-site-data", isAuth, adminController.addSiteData);
+
 router.delete("/item/:itemId", isAuth, adminController.deleteItem);
 
 router.put("/item/:itemId", isAuth, adminController.updateItem);

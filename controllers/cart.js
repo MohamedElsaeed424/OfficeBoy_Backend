@@ -48,6 +48,7 @@ exports.getCartItems = async (req, res, next) => {
 exports.addItemsToCart = async (req, res, next) => {
   const itemId = req.body.itemId;
   const size = req.body.itemSize;
+  const officeBoyId = req.body.officeBoyId;
 
   try {
     //Find the user by userid
@@ -56,14 +57,36 @@ exports.addItemsToCart = async (req, res, next) => {
         empid: req.userId,
       },
     });
-    console.log(user);
-    console.log(user.empid + " added to cart");
     if (!user) {
       const error = new Error("Not authorized to add items to cart");
       error.statusCode = 404;
       throw error;
     }
 
+    const availableOfficeBoys = await prisma.OfficeBoyTBL.findMany({
+      where: {
+        siteref: {
+          siteid: user.siteid,
+        },
+      },
+    });
+    console.log(availableOfficeBoys, "Available Office Boys ");
+    const requestedOfficeBoy = await prisma.officeBoyTBL.findUnique({
+      where: {
+        officeboyid: officeBoyId,
+      },
+    });
+    console.log(requestedOfficeBoy, "Office Boy Selected");
+    var isReqOfficeBoyExist = availableOfficeBoys.includes(requestedOfficeBoy);
+    console.log(isReqOfficeBoyExist);
+    if (isReqOfficeBoyExist) {
+      res
+        .status(403)
+        .json({ message: "Sorry, You can not select this office boy " });
+      const error = new Error("Sorry, You can not select this office boy");
+      error.statusCode = 403;
+      throw error;
+    }
     // Find the user's cart or create a new cart if it doesn't exist
     let userCart = await prisma.CartTBL.findFirst({
       where: {
@@ -130,6 +153,7 @@ exports.addItemsToCart = async (req, res, next) => {
     res.json({
       message: "Added to cart successfully",
       userCart: userCart,
+      availableOfficeBoys: availableOfficeBoys,
       cartItem: cartItem,
     });
   } catch (err) {
@@ -179,20 +203,24 @@ exports.editItemInCart = async (req, res, next) => {
       console.log("quantity :", quanity);
       // If the cart item exists,Check for the quantaty the quantity
       if (incOrDec == 1) {
-        cartItem = await prisma.CartItemsTBL.update({
-          where: {
-            cartitemid: cartItem.cartitemid,
-          },
-          data: {
-            quanity: cartItem.quanity + 1,
-          },
-        });
-        console.log("incresed");
-        res.status(200).json({
-          message: "Item increased in Cart ",
-          DecOrInc: incOrDec,
-          Item: cartItem,
-        });
+        if (quanity < 5) {
+          cartItem = await prisma.CartItemsTBL.update({
+            where: {
+              cartitemid: cartItem.cartitemid,
+            },
+            data: {
+              quanity: cartItem.quanity + 1,
+            },
+          });
+          console.log("incresed");
+          res.status(200).json({
+            message: "Item increased in Cart ",
+            DecOrInc: incOrDec,
+            Item: cartItem,
+          });
+        } else {
+          res.status(403).json({ message: "You can not Increase any more" });
+        }
       } else if (incOrDec == 0) {
         if (quanity > 0) {
           cartItem = await prisma.CartItemsTBL.update({

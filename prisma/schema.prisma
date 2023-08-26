@@ -23,45 +23,95 @@ model BlacklistedToken {
 
 //----------------------------Users-----------------------------------------------------
 model UsersTBL {
-    userid    Int           @id @default(autoincrement())
+    userid    Int            @id @default(autoincrement())
     firstname String
     lastname  String
-    email     String        @unique
+    email     String         @unique
     role      String
     password  String
     //createdAt DateTime     @default(now())
     Employee  EmployeeTBL[]
     Items     ItemsTBL[] // One-to-many relationship with ItemsTBL
     Tokens    TokensTBL[]
+    Officeboy OfficeBoyTBL[]
 }
 
 model EmployeeTBL {
-    emp      UsersTBL  @relation(fields: [empid], references: [userid])
-    empid    Int       @id @unique @default(autoincrement())
-    roomid   Int
-    romid    RoomTBL   @relation(fields: [roomid], references: [roomid])
-    officeid Int
-    offid    OfficeTBL @relation(fields: [officeid], references: [officeid])
-    Cart     CartTBL[]
+    emp           UsersTBL      @relation(fields: [empid], references: [userid])
+    empid         Int           @id @unique @default(autoincrement())
+    roomid        Int
+    romid         RoomTBL       @relation(fields: [roomid], references: [roomid])
+    officeid      Int
+    offid         OfficeTBL     @relation(fields: [officeid], references: [officeid])
+    siteid        Int
+    sitid         SiteTBL       @relation(fields: [siteid], references: [siteid])
+    buildingid    Int
+    bulidingref   BuildingTBL   @relation(fields: [buildingid], references: [buildingid])
+    departmentid  Int
+    departmentref DepartmentTBL @relation(fields: [departmentid], references: [departmentid])
+    Cart          CartTBL[]
     // cartid   Int
     // carttid  CartTBL   @relation(fields: [cartid], references: [cartid])
 }
 
+model OfficeBoyTBL {
+    officeboyid Int       @id @unique @default(autoincrement())
+    officeboy   UsersTBL  @relation(fields: [officeboyid], references: [userid])
+    officeid    Int
+    offid       OfficeTBL @relation(fields: [officeid], references: [officeid])
+    siteid      Int
+    siteref     SiteTBL   @relation(fields: [siteid], references: [siteid])
+}
+
 //-------------------------------Locations--------------------------------------------------
+model SiteTBL {
+    siteid    Int            @id @unique @default(autoincrement())
+    sitename  String         @unique
+    Employee  EmployeeTBL[]
+    Building  BuildingTBL[]
+    Officeboy OfficeBoyTBL[]
+}
+
+model BuildingTBL {
+    buildingid   Int             @id @unique @default(autoincrement())
+    buildingname String          @unique
+    siteid       Int
+    siteref      SiteTBL         @relation(fields: [siteid], references: [siteid])
+    Department   DepartmentTBL[]
+    Office       OfficeTBL[]
+    Employee     EmployeeTBL[]
+}
+
 model OfficeTBL {
-    officeid Int           @id @unique @default(autoincrement())
-    officeno Int           @unique
-    location String
-    Employee EmployeeTBL[]
-    Order    OrdersTBL[]
+    officeid    Int            @id @unique @default(autoincrement())
+    officeno    Int            @unique
+    Employee    EmployeeTBL[]
+    Order       OrdersTBL[]
+    Officeboy   OfficeBoyTBL[]
+    buildingid  Int
+    bulidingref BuildingTBL    @relation(fields: [buildingid], references: [buildingid])
+    Room        RoomTBL[]
+}
+
+model DepartmentTBL {
+    departmentid   Int           @id @unique @default(autoincrement())
+    departmentname String        @unique
+    buildingid     Int
+    Room           RoomTBL[]
+    Employee       EmployeeTBL[]
+    bulidingref    BuildingTBL   @relation(fields: [buildingid], references: [buildingid])
 }
 
 model RoomTBL {
-    roomid   Int           @id @unique @default(autoincrement())
-    roomno   Int
-    roomname String
-    Employee EmployeeTBL[]
-    Order    OrdersTBL[]
+    roomid       Int           @id @unique @default(autoincrement())
+    roomno       Int           @unique
+    roomname     String        @unique
+    officeid     Int
+    officeref    OfficeTBL     @relation(fields: [officeid], references: [officeid])
+    departmentid Int
+    roomdepref   DepartmentTBL @relation(fields: [departmentid], references: [departmentid])
+    Employee     EmployeeTBL[]
+    Order        OrdersTBL[]
 }
 
 //---------------------------------Items------------------------------------------------

@@ -35,8 +35,11 @@ exports.signup = catchAsync(async (req, res, next) => {
   const email = req.body.email;
   const role = req.body.role;
   const password = req.body.password;
-  const roomId = req.body.roomId;
+  const siteId = req.body.siteId;
+  const buildingId = req.body.buildingId;
   const officeId = req.body.officeId;
+  const departmentId = req.body.departmentId;
+  const roomId = req.body.roomId;
   //---------------------------Validations--------------------------
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -50,10 +53,15 @@ exports.signup = catchAsync(async (req, res, next) => {
     const hashedPassword = await bcrypt.hash(password, 12);
     //---------------------Check Employee Role----------------------------------
     if (role == "employee") {
-      //const newCart = await prisma.CartTBL.create({});
-      const roomCheck = await prisma.RoomTBL.findUnique({
+      // Check if the data exisit or not
+      const siteCheck = await prisma.SiteTBL.findUnique({
         where: {
-          roomid: roomId,
+          siteid: siteId,
+        },
+      });
+      const buildingCheck = await prisma.BuildingTBL.findUnique({
+        where: {
+          buildingid: buildingId,
         },
       });
       const officeCheck = await prisma.OfficeTBL.findUnique({
@@ -61,15 +69,52 @@ exports.signup = catchAsync(async (req, res, next) => {
           officeid: officeId,
         },
       });
-      console.log("room: ", roomCheck);
-      console.log("office: ", officeCheck);
-      if (officeCheck && roomCheck) {
-        res.status(403).json({ message: "Please enter valid room or office" });
-        const error = new Error("Please Try enter valid room or office ");
+      const departmentCheck = await prisma.DepartmentTBL.findUnique({
+        where: {
+          departmentid: departmentId,
+        },
+      });
+      const roomCheck1 = await prisma.RoomTBL.findUnique({
+        where: {
+          roomid: roomId,
+        },
+      });
+      if (!siteCheck) {
+        res.status(403).json({ message: "This Site Dose't Exist" });
+        const error = new Error("This Site Dose't Exist");
         error.statusCode = 403;
         error.data = errors.array();
         throw error;
       }
+      if (!buildingCheck) {
+        res.status(403).json({ message: "This Building Dose't Exist" });
+        const error = new Error("This Building Dose't Exist");
+        error.statusCode = 403;
+        error.data = errors.array();
+        throw error;
+      }
+      if (!officeCheck) {
+        res.status(403).json({ message: "This Office Dose't Exist" });
+        const error = new Error("This Office Dose't Exist");
+        error.statusCode = 403;
+        error.data = errors.array();
+        throw error;
+      }
+      if (!departmentCheck) {
+        res.status(403).json({ message: "This Department Dose't Exist" });
+        const error = new Error("This Department Dose't Exist");
+        error.statusCode = 403;
+        error.data = errors.array();
+        throw error;
+      }
+      if (!roomCheck1) {
+        res.status(403).json({ message: "This Room Number  Dose't Exist" });
+        const error = new Error("This Room Number  Dose't Exist");
+        error.statusCode = 403;
+        error.data = errors.array();
+        throw error;
+      }
+      // create employye
       const newUser = await prisma.UsersTBL.create({
         data: {
           firstname: firstname,
@@ -86,9 +131,24 @@ exports.signup = catchAsync(async (req, res, next) => {
               userid: newUser.userid,
             },
           },
+          sitid: {
+            connect: {
+              siteid: siteId,
+            },
+          },
+          bulidingref: {
+            connect: {
+              buildingid: buildingId,
+            },
+          },
           offid: {
             connect: {
               officeid: officeId,
+            },
+          },
+          departmentref: {
+            connect: {
+              departmentid: departmentId,
             },
           },
           romid: {
@@ -120,6 +180,66 @@ exports.signup = catchAsync(async (req, res, next) => {
         .status(201)
         // connect with Front end...
         .json({ message: "User Created Successfully", userId: newUser.userid });
+    } else if (role == "office Boy") {
+      const siteCheck = await prisma.SiteTBL.findUnique({
+        where: {
+          siteid: siteId,
+        },
+      });
+      const officeCheck = await prisma.OfficeTBL.findUnique({
+        where: {
+          officeid: officeId,
+        },
+      });
+      if (!siteCheck) {
+        res.status(403).json({ message: "This Site Dose't Exist" });
+        const error = new Error("This Site Dose't Exist");
+        error.statusCode = 403;
+        error.data = errors.array();
+        throw error;
+      }
+      if (!officeCheck) {
+        res.status(403).json({ message: "This Office Dose't Exist" });
+        const error = new Error("This Office Dose't Exist");
+        error.statusCode = 403;
+        error.data = errors.array();
+        throw error;
+      }
+      const newUser = await prisma.UsersTBL.create({
+        data: {
+          firstname: firstname,
+          lastname: lastname,
+          email: email,
+          role: role,
+          password: hashedPassword,
+        },
+      });
+      const newOfficeBoy = await prisma.OfficeBoyTBL.create({
+        data: {
+          officeboy: {
+            connect: {
+              userid: newUser.userid,
+            },
+          },
+          siteref: {
+            connect: {
+              siteid: siteId,
+            },
+          },
+          offid: {
+            connect: {
+              officeid: officeId,
+            },
+          },
+        },
+      });
+      res
+        .status(201)
+        // connect with Front end...
+        .json({
+          message: "User Created Successfully",
+          userId: newOfficeBoy.officeboyid,
+        });
     }
     // sgMail.send({
     //   to: email,
@@ -140,78 +260,88 @@ exports.signup = catchAsync(async (req, res, next) => {
 exports.login = async (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
-  try {
-    const user = await prisma.UsersTBL.findUnique({
-      where: {
-        email: email,
-      },
-    });
-    if (!user) {
-      const error = new Error("User Not Found , Try Signup");
-      error.statusCode = 404;
-      throw error;
-    }
-    const doMatch = await bcrypt.compare(password, user.password);
-    if (!doMatch) {
-      const error = new Error("Wrong Password");
-      error.statusCode = 401;
-      throw error;
-    }
-    //-------------------------------- Adding JWT (json web token) for a user -----------------------
-    const accessToken = generateAccessToken({ userid: user.userid });
-    const refreshToken = jwt.sign(
-      { email: user.email, userId: user.userid },
-      "MY_REFRESH_SECRET_TOKEN_GENERATED"
-    );
-    // connection with db
-    console.log(refreshToken, user.userid);
-    const createdRefToken = await prisma.TokensTBL.create({
-      data: {
-        refreshtoken: refreshToken,
-        // createdAt: new Date(),
-        reftoken: {
-          connect: {
-            userid: user.userid,
+  console.log(req.userId);
+  if (req.userId !== undefined) {
+    res
+      .status(403)
+      .json({ message: "You can not login There is user already Exsist" });
+    const error = new Error("ou can not login There is user already Exsist");
+    error.statusCode = 404;
+    throw error;
+  } else {
+    try {
+      const user = await prisma.UsersTBL.findUnique({
+        where: {
+          email: email,
+        },
+      });
+      if (!user) {
+        const error = new Error("User Not Found , Try Signup");
+        error.statusCode = 404;
+        throw error;
+      }
+      const doMatch = await bcrypt.compare(password, user.password);
+      if (!doMatch) {
+        const error = new Error("Wrong Password");
+        error.statusCode = 401;
+        throw error;
+      }
+      //-------------------------------- Adding JWT (json web token) for a user -----------------------
+      const accessToken = generateAccessToken({ userid: user.userid });
+      const refreshToken = jwt.sign(
+        { email: user.email, userId: user.userid },
+        "MY_REFRESH_SECRET_TOKEN_GENERATED"
+      );
+      // connection with db
+      console.log(refreshToken, user.userid);
+      const createdRefToken = await prisma.TokensTBL.create({
+        data: {
+          refreshtoken: refreshToken,
+          // createdAt: new Date(),
+          reftoken: {
+            connect: {
+              userid: user.userid,
+            },
           },
         },
-      },
-    });
+      });
 
-    // const createdRefToken = await prisma.TokensTBL.createOne({
-    //   data: {
-    //     refreshtoken: refreshToken,
-    //     createdAt: new Date(),
-    //     reftoken: {
-    //       connect: {
-    //         userid: user.userid,
-    //       },
-    //     },
-    //   },
-    //   //data: {
-    //   //refreshtoken: refreshToken,
-    //   //userid: user.userid,
-    //   //createdAt: new Date(),
-    //   // connect: {
-    //   //   reftoken: {
-    //   //     uderid: user.userid,
-    //   //   },
-    //   // },
-    //   // },
-    // });
-    //-------------------------------------------------------------------------------------------
-    res.status(200).json({
-      accessToken: accessToken,
-      refreshToken: createdRefToken,
-      userId: user.userid.toString(),
-    });
-    console.log(`${email}: Loged in successfully`);
-    return;
-  } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
+      // const createdRefToken = await prisma.TokensTBL.createOne({
+      //   data: {
+      //     refreshtoken: refreshToken,
+      //     createdAt: new Date(),
+      //     reftoken: {
+      //       connect: {
+      //         userid: user.userid,
+      //       },
+      //     },
+      //   },
+      //   //data: {
+      //   //refreshtoken: refreshToken,
+      //   //userid: user.userid,
+      //   //createdAt: new Date(),
+      //   // connect: {
+      //   //   reftoken: {
+      //   //     uderid: user.userid,
+      //   //   },
+      //   // },
+      //   // },
+      // });
+      //-------------------------------------------------------------------------------------------
+      res.status(200).json({
+        accessToken: accessToken,
+        refreshToken: createdRefToken,
+        userId: user.userid.toString(),
+      });
+      console.log(`${email}: Loged in successfully`);
+      return;
+    } catch (err) {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+      return err;
     }
-    next(err);
-    return err;
   }
 };
 function generateAccessToken(user) {
