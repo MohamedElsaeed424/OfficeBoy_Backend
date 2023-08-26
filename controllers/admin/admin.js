@@ -131,6 +131,28 @@ exports.deleteItem = async (req, res, next) => {
         throw error;
       }
       // fileHelper.clearImage(item.itemimagurl);
+
+      // check if the item used in another place
+      const itemCheckInCartItems = await prisma.CartItemsTBL.findFirst({
+        where: {
+          itemids: {
+            itemid: parseInt(itemId),
+          },
+        },
+      });
+
+      if (itemCheckInCartItems) {
+        res.status(403).json({
+          message:
+            "This item exsists in one of employees cart , you can not delete it  ",
+        });
+        const error = new Error(
+          "This item exsists in one of employees cart , you can not delete it"
+        );
+        error.statusCode = 403;
+        throw error;
+      }
+
       const deletedItem = await prisma.ItemsTBL.delete({
         where: {
           itemid: parseInt(itemId),
