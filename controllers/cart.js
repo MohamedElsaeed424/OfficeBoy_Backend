@@ -71,14 +71,19 @@ exports.addItemsToCart = async (req, res, next) => {
       },
     });
     console.log(availableOfficeBoys, "Available Office Boys ");
+
     const requestedOfficeBoy = await prisma.officeBoyTBL.findUnique({
       where: {
         officeboyid: officeBoyId,
       },
     });
+
     console.log(requestedOfficeBoy, "Office Boy Selected");
+
     var isReqOfficeBoyExist = availableOfficeBoys.includes(requestedOfficeBoy);
+
     console.log(isReqOfficeBoyExist);
+
     if (isReqOfficeBoyExist) {
       res
         .status(403)
@@ -182,11 +187,12 @@ exports.editItemInCart = async (req, res, next) => {
       },
     });
     if (!user) {
-      const error = new Error("Not authorized to add items to cart");
+      const error = new Error(
+        "Not authorized to add items to cart , Should login first"
+      );
       error.statusCode = 404;
       throw error;
     }
-
     let userCart = await prisma.CartTBL.findFirst({
       where: {
         employeeid: {

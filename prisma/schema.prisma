@@ -179,7 +179,6 @@ model CartItemsTBL {
 //     quanity     Int
 //     orderid     Int
 //     ordersid    OrdersTBL @relation(fields: [orderid], references: [orderid])
-
 // }
 
 enum RoleEnumType {

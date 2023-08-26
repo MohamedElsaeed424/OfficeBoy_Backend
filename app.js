@@ -91,7 +91,7 @@ app.use((req, res, next) => {
 app.use("/admin", adminRoutes);
 app.use("/admin/categories", categoriesRoutes);
 app.use("/admin/sites", sitesRoutes);
-// app.use("/order", orderRoutes);
+app.use("/order", orderRoutes);
 app.use("/officeBoy", officeBoyRoutes);
 app.use("/auth", authRoutes);
 app.use("/cart", cartRoutes);

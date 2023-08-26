@@ -10,32 +10,78 @@ exports.createOrder = async (req, res, next) => {
     error.statusCode = 422;
     throw error;
   }
-  const items = req.body.items;
-  const officeid = req.body.officeid;
-  const roomid = req.body.roomid;
-  const order = await prisma.ordersTBL.create({
-    data: {
-      itemname: {
-        create: itemname,
+  try {
+    const user = await prisma.EmployeeTBL.findUnique({
+      where: {
+        empid: req.userId,
       },
-      offid: {
-        connect: {
-          officeid,
+    });
+    if (!user) {
+      const error = new Error(
+        "Not authorized to add items to cart , Should login first"
+      );
+      error.statusCode = 404;
+      throw error;
+    }
+    let userCart = await prisma.CartTBL.findFirst({
+      where: {
+        employeeid: {
+          empid: user.empid,
         },
       },
-      romid: {
-        connect: {
-          roomid,
+    });
+    let cartItems = await prisma.CartItemsTBL.findMany({
+      where: {
+        carttid: {
+          cartid: userCart.cartid,
         },
       },
-    },
-    include: {
-      itemname: true,
-      romid: true,
-      offid: true,
-    },
-  });
-  res.json(order);
+    });
+
+    // at end delete cart
+    let userDeletedCart = await prisma.CartTBL.delete({
+      where: {
+        employeeid: {
+          empid: user.empid,
+        },
+      },
+    });
+
+    res.status(200).json({ message: "Order Placed successfuly" });
+
+    // // delete when u finish
+    // const items = req.body.items;
+    // const officeid = req.body.officeid;
+    // const roomid = req.body.roomid;
+    // const order = await prisma.ordersTBL.create({
+    //   data: {
+    //     itemname: {
+    //       create: itemname,
+    //     },
+    //     offid: {
+    //       connect: {
+    //         officeid,
+    //       },
+    //     },
+    //     romid: {
+    //       connect: {
+    //         roomid,
+    //       },
+    //     },
+    //   },
+    //   include: {
+    //     itemname: true,
+    //     romid: true,
+    //     offid: true,
+    //   },
+    // });
+    // res.json(order);
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
 };
 
 //------------------------Search for orders------
