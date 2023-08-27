@@ -4,12 +4,13 @@ const cors = require("cors");
 const path = require("path");
 const multer = require("multer");
 
-const authRoutes = require("./routes/auth");
-// const orderRoutes = require("./routes/orders");
+const authRoutes = require("./routes/auth/auth");
+const orderRoutes = require("./routes/employees/orders");
 const adminRoutes = require("./routes/admin/admin");
-const cartRoutes = require("./routes/cart");
+const cartRoutes = require("./routes/employees/cart");
 const categoriesRoutes = require("./routes/admin/categories");
 const sitesRoutes = require("./routes/admin/sites");
+const rolesRoutes = require("./routes/admin/roles");
 const officeBoyRoutes = require("./routes/officeBoy");
 const { PrismaClient } = require("@prisma/client");
 const isAuth = require("./middleware/is-auth");
@@ -91,6 +92,7 @@ app.use((req, res, next) => {
 app.use("/admin", adminRoutes);
 app.use("/admin/categories", categoriesRoutes);
 app.use("/admin/sites", sitesRoutes);
+app.use("/admin/roles", rolesRoutes);
 app.use("/order", orderRoutes);
 app.use("/officeBoy", officeBoyRoutes);
 app.use("/auth", authRoutes);

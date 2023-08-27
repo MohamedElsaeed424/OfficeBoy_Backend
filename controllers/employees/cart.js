@@ -3,6 +3,7 @@
 const express = require("express");
 const { PrismaClient } = require("@prisma/client");
 const { use } = require("passport");
+const { ExtractJwt } = require("passport-jwt");
 
 const prisma = new PrismaClient();
 const app = express();
@@ -22,20 +23,55 @@ exports.addItem = async (req, res, next) => {
 
 // GET cart with its items
 exports.getCartItems = async (req, res, next) => {
-  const cartId = parseInt(req.params.cartId);
   try {
-    //find unique cart record that matches provided cart id < related order item associated with that cart
-    const cart = await prisma.CartTBL.findUnique({
-      where: { cartid: cartId },
-      include: { CartItems: true },
+    const user = await prisma.EmployeeTBL.findUnique({
+      where: {
+        empid: req.userId,
+      },
     });
-    if (!cart) {
+    if (!user) {
+      const error = new Error("Not authorized to add items to cart");
+      error.statusCode = 404;
+      throw error;
+    }
+    let userCart = await prisma.CartTBL.findFirst({
+      where: {
+        employeeid: {
+          empid: user.empid,
+        },
+      },
+      include: { CartItems: true, employeeid: true },
+    });
+    if (!userCart) {
       res.status(404).json({ message: "Sorry, No Items in cart to be shown" });
       const error = new Error("Sorry, No Items in cart to be shown");
       error.statusCode = 404;
       throw error;
     }
-    res.json({ message: "cart fetched successfully", cart: cart });
+    const site = await prisma.SiteTBL.findUnique({
+      where: {
+        siteid: userCart.employeeid.siteid,
+      },
+    });
+    const office = await prisma.OfficeTBL.findUnique({
+      where: {
+        officeid: userCart.employeeid.officeid,
+      },
+    });
+    const room = await prisma.RoomTBL.findUnique({
+      where: {
+        roomid: userCart.employeeid.roomid,
+      },
+    });
+
+    res.json({
+      message: "cart fetched successfully",
+      cart: userCart,
+      site: site.sitename,
+      office: office.officeno,
+      roomName: room.roomname,
+      roomNum: room.roomno,
+    });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -49,6 +85,7 @@ exports.addItemsToCart = async (req, res, next) => {
   const itemId = req.body.itemId;
   const size = req.body.itemSize;
   const officeBoyId = req.body.officeBoyId;
+  const notes = req.body.Notes;
 
   try {
     //Find the user by userid
@@ -80,15 +117,20 @@ exports.addItemsToCart = async (req, res, next) => {
 
     console.log(requestedOfficeBoy, "Office Boy Selected");
 
-    var isReqOfficeBoyExist = availableOfficeBoys.includes(requestedOfficeBoy);
+    let isReqOfficeBoyExist = availableOfficeBoys.includes(
+      requestedOfficeBoy,
+      0
+    );
 
     console.log(isReqOfficeBoyExist);
-
-    if (isReqOfficeBoyExist) {
-      res
-        .status(403)
-        .json({ message: "Sorry, You can not select this office boy " });
-      const error = new Error("Sorry, You can not select this office boy");
+    if (!isReqOfficeBoyExist) {
+      res.status(403).json({
+        message:
+          "Sorry, You can not select this office boy , he OR she maybe not in your site",
+      });
+      const error = new Error(
+        "Sorry, You can not select this office boy ,he OR she maybe not in your site"
+      );
       error.statusCode = 403;
       throw error;
     }
@@ -136,6 +178,7 @@ exports.addItemsToCart = async (req, res, next) => {
           },
           data: {
             quanity: cartItem.quanity + 1,
+            notes: notes,
           },
         });
       } else {
@@ -159,6 +202,7 @@ exports.addItemsToCart = async (req, res, next) => {
             },
           },
           quanity: 1,
+          notes: notes,
         },
       });
     }
@@ -331,5 +375,122 @@ exports.deleteItemFromCart = async (req, res, next) => {
       err.statusCode = 500;
     }
     next(err);
+  }
+};
+
+exports.editSiteInCart = async (req, res, next) => {
+  try {
+    const siteId = req.body.siteId;
+    const buildingId = req.body.buildingId;
+    const officeId = req.body.officeId;
+    const departmentId = req.body.departmentId;
+    const roomId = req.body.roomId;
+    // Check if the data exisit or not
+    const siteCheck = await prisma.SiteTBL.findUnique({
+      where: {
+        siteid: siteId,
+      },
+    });
+    const buildingCheck = await prisma.BuildingTBL.findUnique({
+      where: {
+        buildingid: buildingId,
+      },
+    });
+    const officeCheck = await prisma.OfficeTBL.findUnique({
+      where: {
+        officeid: officeId,
+      },
+    });
+    const departmentCheck = await prisma.DepartmentTBL.findUnique({
+      where: {
+        departmentid: departmentId,
+      },
+    });
+    const roomCheck1 = await prisma.RoomTBL.findUnique({
+      where: {
+        roomid: roomId,
+      },
+    });
+    if (!siteCheck) {
+      res.status(403).json({ message: "This Site Dose't Exist" });
+      const error = new Error("This Site Dose't Exist");
+      error.statusCode = 403;
+      error.data = errors.array();
+      throw error;
+    }
+    if (!buildingCheck) {
+      res.status(403).json({ message: "This Building Dose't Exist" });
+      const error = new Error("This Building Dose't Exist");
+      error.statusCode = 403;
+      error.data = errors.array();
+      throw error;
+    }
+    if (!officeCheck) {
+      res.status(403).json({ message: "This Office Dose't Exist" });
+      const error = new Error("This Office Dose't Exist");
+      error.statusCode = 403;
+      error.data = errors.array();
+      throw error;
+    }
+    if (!departmentCheck) {
+      res.status(403).json({ message: "This Department Dose't Exist" });
+      const error = new Error("This Department Dose't Exist");
+      error.statusCode = 403;
+      error.data = errors.array();
+      throw error;
+    }
+    if (!roomCheck1) {
+      res.status(403).json({ message: "This Room Number  Dose't Exist" });
+      const error = new Error("This Room Number  Dose't Exist");
+      error.statusCode = 403;
+      error.data = errors.array();
+      throw error;
+    }
+    //update user site data
+    const updatedUser = await prisma.EmployeeTBL.update({
+      where: {
+        empid: req.userId,
+      },
+      data: {
+        sitid: {
+          connect: {
+            siteid: siteId,
+          },
+        },
+        bulidingref: {
+          connect: {
+            buildingid: buildingId,
+          },
+        },
+        offid: {
+          connect: {
+            officeid: officeId,
+          },
+        },
+        departmentref: {
+          connect: {
+            departmentid: departmentId,
+          },
+        },
+        romid: {
+          connect: {
+            roomid: roomId,
+          },
+        },
+      },
+    });
+    res
+      .status(201)
+      // connect with Front end...
+      .json({
+        message: "User Site Updated Successfully",
+        updatedUser: updatedUser,
+      });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+    return err;
   }
 };
