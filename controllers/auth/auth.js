@@ -33,7 +33,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   const firstname = req.body.firstname;
   const lastname = req.body.lastname;
   const email = req.body.email;
-  const role = req.body.role;
+  const roleName = req.body.role;
   const password = req.body.password;
   const siteId = req.body.siteId;
   const buildingId = req.body.buildingId;
@@ -52,7 +52,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   try {
     const hashedPassword = await bcrypt.hash(password, 12);
     //---------------------Check Employee Role----------------------------------
-    if (role == "employee") {
+    if (roleName == "employee") {
       // Check if the data exisit or not
       const siteCheck = await prisma.SiteTBL.findUnique({
         where: {
@@ -120,8 +120,12 @@ exports.signup = catchAsync(async (req, res, next) => {
           firstname: firstname,
           lastname: lastname,
           email: email,
-          role: role,
           password: hashedPassword,
+          roleref: {
+            create: {
+              rolename: roleName,
+            },
+          },
         },
       });
       const newEmployee = await prisma.EmployeeTBL.create({
@@ -166,21 +170,25 @@ exports.signup = catchAsync(async (req, res, next) => {
           userId: newEmployee.empid,
         });
       //---------------------Check Admin Role---------------------------------
-    } else if (role == "Admin") {
+    } else if (roleName == "Admin") {
       const newUser = await prisma.UsersTBL.create({
         data: {
           firstname: firstname,
           lastname: lastname,
           email: email,
-          role: role,
           password: hashedPassword,
+        },
+        roleref: {
+          create: {
+            rolename: roleName,
+          },
         },
       });
       res
         .status(201)
         // connect with Front end...
         .json({ message: "User Created Successfully", userId: newUser.userid });
-    } else if (role == "office Boy") {
+    } else if (roleName == "office Boy") {
       const siteCheck = await prisma.SiteTBL.findUnique({
         where: {
           siteid: siteId,
@@ -210,8 +218,12 @@ exports.signup = catchAsync(async (req, res, next) => {
           firstname: firstname,
           lastname: lastname,
           email: email,
-          role: role,
           password: hashedPassword,
+        },
+        roleref: {
+          create: {
+            rolename: roleName,
+          },
         },
       });
       const newOfficeBoy = await prisma.OfficeBoyTBL.create({

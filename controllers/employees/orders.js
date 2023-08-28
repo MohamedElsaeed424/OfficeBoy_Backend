@@ -178,3 +178,77 @@ exports.getOrder = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.reOrder = async (req, res, next) => {
+  try {
+    const orderId = req.params.orderId;
+    const user = await prisma.EmployeeTBL.findUnique({
+      where: {
+        empid: req.userId,
+      },
+    });
+    if (!user) {
+      const error = new Error(
+        "Not authorized to add items to cart , Should login first"
+      );
+      error.statusCode = 404;
+      throw error;
+    }
+    // here to get order and the order items
+    const searchedOrder = await prisma.OrdersTBL.findUnique({
+      where: {
+        orderid: parseInt(orderId),
+      },
+      include: {
+        orderItems: true,
+      },
+    });
+    if (!searchedOrder) {
+      res.status(404).json({
+        message: "You can not reorder this order is dosn't exsist",
+      });
+      const error = new Error(
+        "You can not reorder this order is dosn't exsist"
+      );
+      error.statusCode = 404;
+      throw error;
+    } else {
+      const order = await prisma.OrdersTBL.create({
+        data: {
+          empref: {
+            connect: {
+              empid: user.empid,
+            },
+          },
+        },
+      });
+      let orderItemsContainer = [];
+      for (let i = 0; i < searchedOrder.orderItems.length; i++) {
+        console.log("orderCartItemi: ", searchedOrder.orderItems[i]);
+        const orderItem = await prisma.OrderItemsTBL.create({
+          data: {
+            itemname: searchedOrder.orderItems[i].itemname,
+            itemquantity: searchedOrder.orderItems[i].itemquantity,
+            itemsize: searchedOrder.orderItems[i].itemsize,
+            ordersid: {
+              connect: {
+                orderid: order.orderid,
+              },
+            },
+          },
+        });
+        orderItemsContainer.push(orderItem);
+      }
+      res.status(202).json({
+        message: "Reorder created successfully",
+        orderNom: order.id,
+        orderItems: orderItemsContainer,
+      });
+    }
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};

@@ -10,4 +10,6 @@ router.get("/get-order", isAuth, ordersController.getOrder);
 
 router.get("/get-orders-history", isAuth, ordersController.getOrdersHistory);
 
+router.post("/reorder/:orderId", isAuth, ordersController.reOrder);
+
 module.exports = router;

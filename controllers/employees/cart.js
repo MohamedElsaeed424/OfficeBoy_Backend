@@ -107,6 +107,7 @@ exports.addItemsToCart = async (req, res, next) => {
         },
       },
     });
+
     console.log(availableOfficeBoys, "Available Office Boys ");
 
     const requestedOfficeBoy = await prisma.officeBoyTBL.findUnique({
@@ -117,13 +118,10 @@ exports.addItemsToCart = async (req, res, next) => {
 
     console.log(requestedOfficeBoy, "Office Boy Selected");
 
-    let isReqOfficeBoyExist = availableOfficeBoys.includes(
-      requestedOfficeBoy,
-      0
-    );
+    let isReqOfficeBoyExist = availableOfficeBoys.includes(requestedOfficeBoy);
 
     console.log(isReqOfficeBoyExist);
-    if (!isReqOfficeBoyExist) {
+    if (isReqOfficeBoyExist) {
       res.status(403).json({
         message:
           "Sorry, You can not select this office boy , he OR she maybe not in your site",
