@@ -6,8 +6,11 @@ exports.addCategory = async (req, res, next) => {
     where: {
       userid: req.userId,
     },
+    include: {
+      roleref: true,
+    },
   });
-  if (user.role == "Admin") {
+  if (user.roleref.rolename == "Admin") {
     try {
       const category = req.body.category;
       const categoryCheck = await prisma.CategoriesTbl.findUnique({
@@ -55,8 +58,11 @@ exports.deleteCategory = async (req, res, next) => {
     where: {
       userid: req.userId,
     },
+    include: {
+      roleref: true,
+    },
   });
-  if (user.role == "Admin") {
+  if (user.roleref.rolename == "Admin") {
     try {
       const categoryId = req.params.categoryId;
       const category = await prisma.CategoriesTbl.findUnique({
@@ -114,8 +120,11 @@ exports.updateCategory = async (req, res, next) => {
     where: {
       userid: req.userId,
     },
+    include: {
+      roleref: true,
+    },
   });
-  if (user.role == "Admin") {
+  if (user.roleref.rolename == "Admin") {
     const categoryId = req.params.categoryId;
     const categoryName = req.body.categoryName;
     try {

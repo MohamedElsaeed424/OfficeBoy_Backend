@@ -33,7 +33,8 @@ exports.signup = catchAsync(async (req, res, next) => {
   const firstname = req.body.firstname;
   const lastname = req.body.lastname;
   const email = req.body.email;
-  const roleName = req.body.role;
+  // const roleName = req.body.role;
+  const roleId = req.body.roleId;
   const password = req.body.password;
   const siteId = req.body.siteId;
   const buildingId = req.body.buildingId;
@@ -51,70 +52,8 @@ exports.signup = catchAsync(async (req, res, next) => {
   //-------------------------Hashing The Password for security------------------
   try {
     const hashedPassword = await bcrypt.hash(password, 12);
-    //---------------------Check Employee Role----------------------------------
-    if (roleName == "employee") {
-      // Check if the data exisit or not
-      const siteCheck = await prisma.SiteTBL.findUnique({
-        where: {
-          siteid: siteId,
-        },
-      });
-      const buildingCheck = await prisma.BuildingTBL.findUnique({
-        where: {
-          buildingid: buildingId,
-        },
-      });
-      const officeCheck = await prisma.OfficeTBL.findUnique({
-        where: {
-          officeid: officeId,
-        },
-      });
-      const departmentCheck = await prisma.DepartmentTBL.findUnique({
-        where: {
-          departmentid: departmentId,
-        },
-      });
-      const roomCheck1 = await prisma.RoomTBL.findUnique({
-        where: {
-          roomid: roomId,
-        },
-      });
-      if (!siteCheck) {
-        res.status(403).json({ message: "This Site Dose't Exist" });
-        const error = new Error("This Site Dose't Exist");
-        error.statusCode = 403;
-        error.data = errors.array();
-        throw error;
-      }
-      if (!buildingCheck) {
-        res.status(403).json({ message: "This Building Dose't Exist" });
-        const error = new Error("This Building Dose't Exist");
-        error.statusCode = 403;
-        error.data = errors.array();
-        throw error;
-      }
-      if (!officeCheck) {
-        res.status(403).json({ message: "This Office Dose't Exist" });
-        const error = new Error("This Office Dose't Exist");
-        error.statusCode = 403;
-        error.data = errors.array();
-        throw error;
-      }
-      if (!departmentCheck) {
-        res.status(403).json({ message: "This Department Dose't Exist" });
-        const error = new Error("This Department Dose't Exist");
-        error.statusCode = 403;
-        error.data = errors.array();
-        throw error;
-      }
-      if (!roomCheck1) {
-        res.status(403).json({ message: "This Room Number  Dose't Exist" });
-        const error = new Error("This Room Number  Dose't Exist");
-        error.statusCode = 403;
-        error.data = errors.array();
-        throw error;
-      }
-      // create employye
+    const isThereAnyRols = await prisma.RoleTBL.findMany();
+    if (isThereAnyRols.length == 0) {
       const newUser = await prisma.UsersTBL.create({
         data: {
           firstname: firstname,
@@ -123,64 +62,8 @@ exports.signup = catchAsync(async (req, res, next) => {
           password: hashedPassword,
           roleref: {
             create: {
-              rolename: roleName,
+              rolename: "Admin",
             },
-          },
-        },
-      });
-      const newEmployee = await prisma.EmployeeTBL.create({
-        data: {
-          emp: {
-            connect: {
-              userid: newUser.userid,
-            },
-          },
-          sitid: {
-            connect: {
-              siteid: siteId,
-            },
-          },
-          bulidingref: {
-            connect: {
-              buildingid: buildingId,
-            },
-          },
-          offid: {
-            connect: {
-              officeid: officeId,
-            },
-          },
-          departmentref: {
-            connect: {
-              departmentid: departmentId,
-            },
-          },
-          romid: {
-            connect: {
-              roomid: roomId,
-            },
-          },
-        },
-      });
-      res
-        .status(201)
-        // connect with Front end...
-        .json({
-          message: "User Created Successfully",
-          userId: newEmployee.empid,
-        });
-      //---------------------Check Admin Role---------------------------------
-    } else if (roleName == "Admin") {
-      const newUser = await prisma.UsersTBL.create({
-        data: {
-          firstname: firstname,
-          lastname: lastname,
-          email: email,
-          password: hashedPassword,
-        },
-        roleref: {
-          create: {
-            rolename: roleName,
           },
         },
       });
@@ -188,71 +71,225 @@ exports.signup = catchAsync(async (req, res, next) => {
         .status(201)
         // connect with Front end...
         .json({ message: "User Created Successfully", userId: newUser.userid });
-    } else if (roleName == "office Boy") {
-      const siteCheck = await prisma.SiteTBL.findUnique({
+    } else {
+      const RoleCheck = await prisma.RoleTBL.findUnique({
         where: {
-          siteid: siteId,
+          roleid: parseInt(roleId),
         },
       });
-      const officeCheck = await prisma.OfficeTBL.findUnique({
-        where: {
-          officeid: officeId,
-        },
-      });
-      if (!siteCheck) {
-        res.status(403).json({ message: "This Site Dose't Exist" });
-        const error = new Error("This Site Dose't Exist");
+      if (!RoleCheck) {
+        res.status(403).json({ message: "This Role Dose't Exist" });
+        const error = new Error("This Role Dose't Exist");
         error.statusCode = 403;
         error.data = errors.array();
         throw error;
       }
-      if (!officeCheck) {
-        res.status(403).json({ message: "This Office Dose't Exist" });
-        const error = new Error("This Office Dose't Exist");
-        error.statusCode = 403;
-        error.data = errors.array();
-        throw error;
-      }
-      const newUser = await prisma.UsersTBL.create({
-        data: {
-          firstname: firstname,
-          lastname: lastname,
-          email: email,
-          password: hashedPassword,
-        },
-        roleref: {
-          create: {
-            rolename: roleName,
+      if (RoleCheck.rolename == "employee") {
+        // Check if the data exisit or not
+        const siteCheck = await prisma.SiteTBL.findUnique({
+          where: {
+            siteid: siteId,
           },
-        },
-      });
-      const newOfficeBoy = await prisma.OfficeBoyTBL.create({
-        data: {
-          officeboy: {
-            connect: {
-              userid: newUser.userid,
-            },
-          },
-          siteref: {
-            connect: {
-              siteid: siteId,
-            },
-          },
-          offid: {
-            connect: {
-              officeid: officeId,
-            },
-          },
-        },
-      });
-      res
-        .status(201)
-        // connect with Front end...
-        .json({
-          message: "User Created Successfully",
-          userId: newOfficeBoy.officeboyid,
         });
+        const buildingCheck = await prisma.BuildingTBL.findUnique({
+          where: {
+            buildingid: buildingId,
+          },
+        });
+        const officeCheck = await prisma.OfficeTBL.findUnique({
+          where: {
+            officeid: officeId,
+          },
+        });
+        const departmentCheck = await prisma.DepartmentTBL.findUnique({
+          where: {
+            departmentid: departmentId,
+          },
+        });
+        const roomCheck1 = await prisma.RoomTBL.findUnique({
+          where: {
+            roomid: roomId,
+          },
+        });
+        if (!siteCheck) {
+          res.status(403).json({ message: "This Site Dose't Exist" });
+          const error = new Error("This Site Dose't Exist");
+          error.statusCode = 403;
+          error.data = errors.array();
+          throw error;
+        }
+        if (!buildingCheck) {
+          res.status(403).json({ message: "This Building Dose't Exist" });
+          const error = new Error("This Building Dose't Exist");
+          error.statusCode = 403;
+          error.data = errors.array();
+          throw error;
+        }
+        if (!officeCheck) {
+          res.status(403).json({ message: "This Office Dose't Exist" });
+          const error = new Error("This Office Dose't Exist");
+          error.statusCode = 403;
+          error.data = errors.array();
+          throw error;
+        }
+        if (!departmentCheck) {
+          res.status(403).json({ message: "This Department Dose't Exist" });
+          const error = new Error("This Department Dose't Exist");
+          error.statusCode = 403;
+          error.data = errors.array();
+          throw error;
+        }
+        if (!roomCheck1) {
+          res.status(403).json({ message: "This Room Number  Dose't Exist" });
+          const error = new Error("This Room Number  Dose't Exist");
+          error.statusCode = 403;
+          error.data = errors.array();
+          throw error;
+        }
+        // create employye
+        const newUser = await prisma.UsersTBL.create({
+          data: {
+            firstname: firstname,
+            lastname: lastname,
+            email: email,
+            password: hashedPassword,
+            roleref: {
+              connect: {
+                roleid: parseInt(roleId),
+              },
+            },
+          },
+        });
+        const newEmployee = await prisma.EmployeeTBL.create({
+          data: {
+            emp: {
+              connect: {
+                userid: newUser.userid,
+              },
+            },
+            sitid: {
+              connect: {
+                siteid: siteId,
+              },
+            },
+            bulidingref: {
+              connect: {
+                buildingid: buildingId,
+              },
+            },
+            offid: {
+              connect: {
+                officeid: officeId,
+              },
+            },
+            departmentref: {
+              connect: {
+                departmentid: departmentId,
+              },
+            },
+            romid: {
+              connect: {
+                roomid: roomId,
+              },
+            },
+          },
+        });
+        res
+          .status(201)
+          // connect with Front end...
+          .json({
+            message: "User Created Successfully",
+            userId: newEmployee.empid,
+          });
+        //---------------------Check Admin Role---------------------------------
+      } else if (RoleCheck.rolename == "Admin") {
+        const newUser = await prisma.UsersTBL.create({
+          data: {
+            firstname: firstname,
+            lastname: lastname,
+            email: email,
+            password: hashedPassword,
+            roleref: {
+              connect: {
+                roleid: roleId,
+              },
+            },
+          },
+        });
+        res
+          .status(201)
+          // connect with Front end...
+          .json({
+            message: "User Created Successfully",
+            userId: newUser.userid,
+          });
+      } else if (roleName == "office Boy") {
+        const siteCheck = await prisma.SiteTBL.findUnique({
+          where: {
+            siteid: siteId,
+          },
+        });
+        const officeCheck = await prisma.OfficeTBL.findUnique({
+          where: {
+            officeid: officeId,
+          },
+        });
+        if (!siteCheck) {
+          res.status(403).json({ message: "This Site Dose't Exist" });
+          const error = new Error("This Site Dose't Exist");
+          error.statusCode = 403;
+          error.data = errors.array();
+          throw error;
+        }
+        if (!officeCheck) {
+          res.status(403).json({ message: "This Office Dose't Exist" });
+          const error = new Error("This Office Dose't Exist");
+          error.statusCode = 403;
+          error.data = errors.array();
+          throw error;
+        }
+        const newUser = await prisma.UsersTBL.create({
+          data: {
+            firstname: firstname,
+            lastname: lastname,
+            email: email,
+            password: hashedPassword,
+          },
+          roleref: {
+            connect: {
+              roleid: parseInt(roleId),
+            },
+          },
+        });
+        const newOfficeBoy = await prisma.OfficeBoyTBL.create({
+          data: {
+            officeboy: {
+              connect: {
+                userid: newUser.userid,
+              },
+            },
+            siteref: {
+              connect: {
+                siteid: siteId,
+              },
+            },
+            offid: {
+              connect: {
+                officeid: officeId,
+              },
+            },
+          },
+        });
+        res
+          .status(201)
+          // connect with Front end...
+          .json({
+            message: "User Created Successfully",
+            userId: newOfficeBoy.officeboyid,
+          });
+      }
     }
+
     // sgMail.send({
     //   to: email,
     //   from: "postman.mord@gmail.com",

@@ -7,8 +7,11 @@ exports.addSiteData = async (req, res, next) => {
     where: {
       userid: req.userId,
     },
+    include: {
+      roleref: true,
+    },
   });
-  if (user.role == "Admin") {
+  if (user.roleref.rolename == "Admin") {
     const site = req.body.site;
     const building = req.body.building;
     const office = req.body.office;
@@ -174,9 +177,11 @@ exports.getSiteData = async (req, res, next) => {
     where: {
       userid: req.userId,
     },
+    include: {
+      roleref: true,
+    },
   });
-
-  if (user.role == "Admin") {
+  if (user.roleref.rolename == "Admin") {
     try {
       const sites = await prisma.SiteTBL.findMany();
       if (sites.length === 0) {
@@ -211,9 +216,11 @@ exports.getBuildingData = async (req, res, next) => {
     where: {
       userid: req.userId,
     },
+    include: {
+      roleref: true,
+    },
   });
-
-  if (user.role == "Admin") {
+  if (user.roleref.rolename == "Admin") {
     try {
       const buildings = await prisma.BuildingTBL.findMany();
       if (buildings.length === 0) {
@@ -248,9 +255,11 @@ exports.getOfficeData = async (req, res, next) => {
     where: {
       userid: req.userId,
     },
+    include: {
+      roleref: true,
+    },
   });
-
-  if (user.role == "Admin") {
+  if (user.roleref.rolename == "Admin") {
     try {
       const offices = await prisma.OfficeTBL.findMany();
       if (offices.length === 0) {
@@ -285,9 +294,11 @@ exports.getDepartmentData = async (req, res, next) => {
     where: {
       userid: req.userId,
     },
+    include: {
+      roleref: true,
+    },
   });
-
-  if (user.role == "Admin") {
+  if (user.roleref.rolename == "Admin") {
     try {
       const departments = await prisma.DepartmentTBL.findMany();
       if (departments.length === 0) {
@@ -322,9 +333,11 @@ exports.getRoomData = async (req, res, next) => {
     where: {
       userid: req.userId,
     },
+    include: {
+      roleref: true,
+    },
   });
-
-  if (user.role == "Admin") {
+  if (user.roleref.rolename == "Admin") {
     try {
       const rooms = await prisma.RoomTBL.findMany();
       if (rooms.length === 0) {

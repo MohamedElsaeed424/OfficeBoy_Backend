@@ -29,7 +29,7 @@ model UsersTBL {
     email     String         @unique
     password  String
     // rolename      String
-    roleid    Int            @default(1)
+    roleid    Int
     roleref   RoleTBL        @relation(fields: [roleid], references: [roleid])
     Employee  EmployeeTBL[]
     Items     ItemsTBL[] // One-to-many relationship with ItemsTBL

@@ -7,11 +7,11 @@ exports.addItem = async (req, res, next) => {
     where: {
       userid: req.userId,
     },
+    include: {
+      roleref: true,
+    },
   });
-  console.log(user);
-  console.log(user.userid);
-  console.log(user.role);
-  if (user.role == "Admin") {
+  if (user.roleref.rolename == "Admin") {
     //----------------------------------Check for Image Exist-------
     // if (!req.file) {
     //   const error = new Error("No image Provided");
@@ -109,8 +109,11 @@ exports.deleteItem = async (req, res, next) => {
     where: {
       userid: req.userId,
     },
+    include: {
+      roleref: true,
+    },
   });
-  if (user.role == "Admin") {
+  if (user.roleref.rolename == "Admin") {
     const itemId = req.params.itemId;
     try {
       console.log(itemId);
@@ -189,8 +192,11 @@ exports.updateItem = async (req, res, next) => {
     where: {
       userid: req.userId,
     },
+    include: {
+      roleref: true,
+    },
   });
-  if (user.role == "Admin") {
+  if (user.roleref.rolename == "Admin") {
     const itemId = req.params.itemId;
     const itemName = req.body.itemName;
     // const itemImag = req.file.path.replace("\\", "/");
@@ -268,9 +274,11 @@ exports.getItem = async (req, res, next) => {
     where: {
       userid: req.userId,
     },
+    include: {
+      roleref: true,
+    },
   });
-  console.log(user.role);
-  if (user.role == "Admin") {
+  if (user.roleref.rolename == "Admin") {
     const itemId = req.params.itemId;
     try {
       const item = await prisma.ItemsTBL.findUnique({

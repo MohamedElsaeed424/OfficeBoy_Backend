@@ -11,8 +11,11 @@ exports.addRole = async (req, res, next) => {
       where: {
         userid: req.userId,
       },
+      include: {
+        roleref: true,
+      },
     });
-    if (user.role == "Admin") {
+    if (user.roleref.rolename == "Admin") {
       const roleName = req.body.roleName;
       const roleNameCheck = await prisma.RoleTBL.findUnique({
         where: {
@@ -26,7 +29,7 @@ exports.addRole = async (req, res, next) => {
         error.data = errors.array();
         throw error;
       }
-      const createdRole = await prisma.RoleTBL.creat({
+      const createdRole = await prisma.RoleTBL.create({
         data: {
           rolename: roleName,
         },
@@ -63,7 +66,7 @@ exports.getRoles = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
-    console.log(items);
+    console.log(roles);
     res.status(200).json({ roles: roles });
   } catch (err) {
     if (!err.statusCode) {
