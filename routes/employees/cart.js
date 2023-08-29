@@ -33,6 +33,7 @@ router.post(
         }
       }),
   ],
+
   isAuth,
   cartController.addItemsToCart
 );
