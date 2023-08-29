@@ -1,18 +1,18 @@
 const express = require("express");
 const { body } = require("express-validator");
 const isAuth = require("../../middleware/is-auth");
-const rolesController = require("../../controllers/admin/roles");
+const sizesController = require("../../controllers/admin/sizes");
 const router = express.Router();
 
 router.post(
-  "/add-role",
+  "/add-size",
   [
-    body("roleName")
+    body("sizeName")
       .trim()
       .not()
       .isEmpty()
-      .isLength({ min: 5 })
-      .withMessage("Please enter valid role name  , minmum 5 characters")
+      .isLength({ max: 4 })
+      .withMessage("Please enter valid size name  , maximum 4 characters")
       .custom(async (value, { req }) => {
         var format = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
         var checkValue = false;
@@ -24,16 +24,16 @@ router.post(
         console.log(checkValue);
         if (checkValue == true) {
           return Promise.reject(
-            " role name should contains only upper and lower cases characters."
+            "size name should contains only upper and lower cases characters."
           );
         }
       }),
   ],
   isAuth,
-  rolesController.addRole
+  sizesController.addSize
 );
 
 // used in signup
-router.get("/get-roles", isAuth, rolesController.getRoles);
+router.get("/get-sizes", isAuth, sizesController.getSizes);
 
 module.exports = router;

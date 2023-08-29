@@ -1,11 +1,8 @@
 const { PrismaClient } = require("@prisma/client");
-const { use } = require("passport");
-
+const prisma = new PrismaClient();
 const { validationResult } = require("express-validator");
 
-const prisma = new PrismaClient();
-
-exports.addRole = async (req, res, next) => {
+exports.addSize = async (req, res, next) => {
   try {
     const user = await prisma.UsersTBL.findUnique({
       where: {
@@ -16,7 +13,7 @@ exports.addRole = async (req, res, next) => {
       },
     });
     if (user.roleref.rolename == "Admin") {
-      const roleName = req.body.roleName;
+      const sizeName = req.body.sizeName;
       //---------------------------Validations--------------------------
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -25,29 +22,29 @@ exports.addRole = async (req, res, next) => {
         error.data = errors.array();
         throw error;
       }
-      const roleNameCheck = await prisma.RoleTBL.findUnique({
+      const sizeNameCheck = await prisma.SizeTBL.findUnique({
         where: {
-          rolename: roleName,
+          sizename: sizeName,
         },
       });
-      if (roleNameCheck) {
-        res.status(403).json({ message: "This Role already exist" });
-        const error = new Error("This Role already exist");
+      if (sizeNameCheck) {
+        res.status(403).json({ message: "This Size already exist" });
+        const error = new Error("This Size already exist");
         error.statusCode = 403;
         error.data = errors.array();
         throw error;
       }
-      const createdRole = await prisma.RoleTBL.create({
+      const createdSize = await prisma.SizeTBL.create({
         data: {
-          rolename: roleName,
+          sizename: sizeName,
         },
       });
       res
         .status(201)
         // connect with Front end...
         .json({
-          message: "Role Created Successfully",
-          Role: createdRole,
+          message: "Size Created Successfully",
+          Size: createdSize,
           creator: { userid: user.userid, name: user.firstname },
         });
     } else {
@@ -65,17 +62,17 @@ exports.addRole = async (req, res, next) => {
   }
 };
 
-exports.getRoles = async (req, res, next) => {
+exports.getSizes = async (req, res, next) => {
   try {
-    const roles = await prisma.RoleTBL.findMany();
-    if (roles.length === 0) {
-      res.status(404).json({ message: "Sorry, No roles to be shown yet" });
-      const error = new Error("Sorry, No roles to be shown yet");
+    const sizes = await prisma.SizeTBL.findMany();
+    if (sizes.length === 0) {
+      res.status(404).json({ message: "Sorry, No sizes to be shown yet" });
+      const error = new Error("Sorry, No sizes to be shown yet");
       error.statusCode = 404;
       throw error;
     }
-    console.log(roles);
-    res.status(200).json({ roles: roles });
+    console.log(sizes);
+    res.status(200).json({ sizes: sizes });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;

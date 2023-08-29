@@ -1,7 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const fileHelper = require("../../util/file");
-
+const { validationResult } = require("express-validator");
 exports.addSiteData = async (req, res, next) => {
   const user = await prisma.UsersTBL.findUnique({
     where: {
@@ -20,6 +20,14 @@ exports.addSiteData = async (req, res, next) => {
     const roomNum = req.body.roomNum;
 
     try {
+      //---------------------------Validations--------------------------
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        const error = new Error("Please Try again , Validation Failed");
+        error.statusCode = 422;
+        error.data = errors.array();
+        throw error;
+      }
       // check if already exist
       const siteCheck = await prisma.SiteTBL.findUnique({
         where: {
@@ -33,7 +41,7 @@ exports.addSiteData = async (req, res, next) => {
       });
       const officeCheck = await prisma.OfficeTBL.findUnique({
         where: {
-          officeno: office,
+          officeno: parseInt(office),
         },
       });
       const departmentCheck = await prisma.DepartmentTBL.findUnique({
@@ -43,7 +51,7 @@ exports.addSiteData = async (req, res, next) => {
       });
       const roomCheck1 = await prisma.RoomTBL.findUnique({
         where: {
-          roomno: roomNum,
+          roomno: parseInt(roomNum),
         },
       });
       const roomCheck2 = await prisma.RoomTBL.findUnique({
@@ -111,7 +119,7 @@ exports.addSiteData = async (req, res, next) => {
       });
       const createdOffice = await prisma.OfficeTBL.create({
         data: {
-          officeno: office,
+          officeno: parseInt(office),
           bulidingref: {
             connect: {
               buildingid: createBuilding.buildingid,
@@ -131,7 +139,7 @@ exports.addSiteData = async (req, res, next) => {
       });
       const createdRoom = await prisma.RoomTBL.create({
         data: {
-          roomno: roomNum,
+          roomno: parseInt(roomNum),
           roomname: roomName,
           officeref: {
             connect: {

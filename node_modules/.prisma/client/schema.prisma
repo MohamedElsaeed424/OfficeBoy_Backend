@@ -168,11 +168,19 @@ model CartItemsTBL {
     cartitemid Int      @id @unique @default(autoincrement())
     quanity    Int
     cartid     Int
-    itemsize   String   @unique
+    // itemsize   String   @unique
     notes      String?
     carttid    CartTBL? @relation(fields: [cartid], references: [cartid])
     itemid     Int // Foreign key referencing CategoriesTbl
     itemids    ItemsTBL @relation(fields: [itemid], references: [itemid])
+    sizeid     Int
+    sizeref    SizeTBL  @relation(fields: [sizeid], references: [sizeid])
+}
+
+model SizeTBL {
+    sizeid    Int            @id @unique @default(autoincrement())
+    sizename  String         @unique
+    CartItems CartItemsTBL[]
 }
 
 //commands

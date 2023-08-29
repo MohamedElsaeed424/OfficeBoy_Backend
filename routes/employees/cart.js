@@ -10,7 +10,32 @@ const prisma = new PrismaClient();
 
 router.get("/cart-Items", isAuth, cartController.getCartItems);
 
-router.post("/cart-Item", isAuth, cartController.addItemsToCart);
+router.post(
+  "/add-cart-Item",
+  [
+    body("Notes")
+      .trim()
+      .isLength({ min: 5 })
+      .withMessage("Please enter valid room name , minimum 5 characters")
+      .custom(async (value, { req }) => {
+        var format = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+        var checkValue = false;
+        if (format.test(value)) {
+          checkValue = true;
+        } else {
+          checkValue = false;
+        }
+        console.log(checkValue);
+        if (checkValue == true) {
+          return Promise.reject(
+            "Notes should contains only upper and lower cases characters."
+          );
+        }
+      }),
+  ],
+  isAuth,
+  cartController.addItemsToCart
+);
 
 router.put("/edit-site-cart", isAuth, cartController.editSiteInCart);
 

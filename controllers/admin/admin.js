@@ -1,6 +1,15 @@
+const { validationResult } = require("express-validator");
+const path = require("path");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
-const fileHelper = require("../../util/file");
+const sgMail = require("@sendgrid/mail");
+const markdown = require("markdown-it")();
+
+const express = require("express"); //new
+const { off } = require("process");
+const app = express(); //new
 
 exports.addItem = async (req, res, next) => {
   const user = await prisma.UsersTBL.findUnique({
@@ -11,6 +20,7 @@ exports.addItem = async (req, res, next) => {
       roleref: true,
     },
   });
+
   if (user.roleref.rolename == "Admin") {
     //----------------------------------Check for Image Exist-------
     // if (!req.file) {
@@ -26,13 +36,21 @@ exports.addItem = async (req, res, next) => {
     // const category = itemCategory.toUpperCase();
     const category = req.body.category;
     const description = req.body.description;
-
     //const category = itemCategory.toUpperCase(); // to generalize category names
+
     //-------------------Add item-----------------
     try {
+      //---------------------------Validations--------------------------
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        const error = new Error("Please Try again , Validation Failed");
+        error.statusCode = 422;
+        error.data = errors.array();
+        throw error;
+      }
       const categoryCheck = await prisma.CategoriesTbl.findUnique({
         where: {
-          categoryid: category,
+          categoryid: parseInt(category),
         },
       });
       const itemNameCheck = await prisma.ItemsTBL.findUnique({
@@ -54,7 +72,6 @@ exports.addItem = async (req, res, next) => {
         error.data = errors.array();
         throw error;
       }
-
       const createdItem = await prisma.itemsTBL.create({
         data: {
           itemname: itemName,
@@ -67,7 +84,7 @@ exports.addItem = async (req, res, next) => {
           },
           catid: {
             connect: {
-              categoryid: category,
+              categoryid: parseInt(category),
             },
           },
           // carttid: null,
@@ -204,6 +221,7 @@ exports.updateItem = async (req, res, next) => {
     // const itemCategory = req.body.category;
     // const category = itemCategory.toUpperCase(); // to genralize category names
     const category = req.body.category;
+    const description = req.body.description;
     // if (req.file) {
     //   itemImag = req.file.path.replace("\\", "/");
     // }
@@ -213,6 +231,14 @@ exports.updateItem = async (req, res, next) => {
       throw error;
     }
     try {
+      //---------------------------Validations--------------------------
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        const error = new Error("Please Try again , Validation Failed");
+        error.statusCode = 422;
+        error.data = errors.array();
+        throw error;
+      }
       const item = await prisma.ItemsTBL.findUnique({
         where: {
           itemid: parseInt(itemId),
@@ -238,6 +264,7 @@ exports.updateItem = async (req, res, next) => {
         data: {
           itemname: itemName,
           itemimagurl: itemImag,
+          itemidescription: description,
           creator: {
             connect: {
               userid: req.userId,
@@ -245,7 +272,7 @@ exports.updateItem = async (req, res, next) => {
           },
           catid: {
             connect: {
-              categoryname: category,
+              categoryid: parseInt(category),
             },
           },
         },

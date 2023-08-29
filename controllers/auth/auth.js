@@ -41,6 +41,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   const officeId = req.body.officeId;
   const departmentId = req.body.departmentId;
   const roomId = req.body.roomId;
+  console.log(siteId);
   //---------------------------Validations--------------------------
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -88,27 +89,27 @@ exports.signup = catchAsync(async (req, res, next) => {
         // Check if the data exisit or not
         const siteCheck = await prisma.SiteTBL.findUnique({
           where: {
-            siteid: siteId,
+            siteid: parseInt(siteId),
           },
         });
         const buildingCheck = await prisma.BuildingTBL.findUnique({
           where: {
-            buildingid: buildingId,
+            buildingid: parseInt(buildingId),
           },
         });
         const officeCheck = await prisma.OfficeTBL.findUnique({
           where: {
-            officeid: officeId,
+            officeid: parseInt(officeId),
           },
         });
         const departmentCheck = await prisma.DepartmentTBL.findUnique({
           where: {
-            departmentid: departmentId,
+            departmentid: parseInt(departmentId),
           },
         });
         const roomCheck1 = await prisma.RoomTBL.findUnique({
           where: {
-            roomid: roomId,
+            roomid: parseInt(roomId),
           },
         });
         if (!siteCheck) {
@@ -169,27 +170,27 @@ exports.signup = catchAsync(async (req, res, next) => {
             },
             sitid: {
               connect: {
-                siteid: siteId,
+                siteid: parseInt(siteId),
               },
             },
             bulidingref: {
               connect: {
-                buildingid: buildingId,
+                buildingid: parseInt(buildingId),
               },
             },
             offid: {
               connect: {
-                officeid: officeId,
+                officeid: parseInt(officeId),
               },
             },
             departmentref: {
               connect: {
-                departmentid: departmentId,
+                departmentid: parseInt(departmentId),
               },
             },
             romid: {
               connect: {
-                roomid: roomId,
+                roomid: parseInt(roomId),
               },
             },
           },
@@ -211,7 +212,7 @@ exports.signup = catchAsync(async (req, res, next) => {
             password: hashedPassword,
             roleref: {
               connect: {
-                roleid: roleId,
+                roleid: parseInt(roleId),
               },
             },
           },
@@ -226,12 +227,12 @@ exports.signup = catchAsync(async (req, res, next) => {
       } else if (roleName == "office Boy") {
         const siteCheck = await prisma.SiteTBL.findUnique({
           where: {
-            siteid: siteId,
+            siteid: parseInt(siteId),
           },
         });
         const officeCheck = await prisma.OfficeTBL.findUnique({
           where: {
-            officeid: officeId,
+            officeid: parseInt(officeId),
           },
         });
         if (!siteCheck) {
@@ -270,12 +271,12 @@ exports.signup = catchAsync(async (req, res, next) => {
             },
             siteref: {
               connect: {
-                siteid: siteId,
+                siteid: parseInt(siteId),
               },
             },
             offid: {
               connect: {
-                officeid: officeId,
+                officeid: parseInt(officeId),
               },
             },
           },

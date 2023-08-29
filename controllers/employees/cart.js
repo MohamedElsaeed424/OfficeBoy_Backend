@@ -4,6 +4,7 @@ const express = require("express");
 const { PrismaClient } = require("@prisma/client");
 const { use } = require("passport");
 const { ExtractJwt } = require("passport-jwt");
+const { validationResult } = require("express-validator");
 
 const prisma = new PrismaClient();
 const app = express();
@@ -83,11 +84,19 @@ exports.getCartItems = async (req, res, next) => {
 // // POST new cart with items
 exports.addItemsToCart = async (req, res, next) => {
   const itemId = req.body.itemId;
-  const size = req.body.itemSize;
+  const sizeId = req.body.sizeId;
   const officeBoyId = req.body.officeBoyId;
   const notes = req.body.Notes;
 
   try {
+    //---------------------------Validations--------------------------
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const error = new Error("Please Try again , Validation Failed");
+      error.statusCode = 422;
+      error.data = errors.array();
+      throw error;
+    }
     //Find the user by userid
     const user = await prisma.EmployeeTBL.findUnique({
       where: {
@@ -100,6 +109,19 @@ exports.addItemsToCart = async (req, res, next) => {
       throw error;
     }
 
+    const sizeCheck = await prisma.SizeTBL.findUnique({
+      where: {
+        sizeid: sizeId,
+      },
+    });
+    if (!sizeCheck) {
+      res.status(403).json({ message: "This size Dose't Exist" });
+      const error = new Error("This size Dose't Exist");
+      error.statusCode = 403;
+      error.data = errors.array();
+      throw error;
+    }
+
     const availableOfficeBoys = await prisma.OfficeBoyTBL.findMany({
       where: {
         siteref: {
@@ -107,19 +129,14 @@ exports.addItemsToCart = async (req, res, next) => {
         },
       },
     });
-
     console.log(availableOfficeBoys, "Available Office Boys ");
-
     const requestedOfficeBoy = await prisma.officeBoyTBL.findUnique({
       where: {
         officeboyid: officeBoyId,
       },
     });
-
     console.log(requestedOfficeBoy, "Office Boy Selected");
-
     let isReqOfficeBoyExist = availableOfficeBoys.includes(requestedOfficeBoy);
-
     console.log(isReqOfficeBoyExist);
     if (isReqOfficeBoyExist) {
       res.status(403).json({
@@ -188,7 +205,6 @@ exports.addItemsToCart = async (req, res, next) => {
       // If the cart item doesn't exist, create a new cart item
       cartItem = await prisma.CartItemsTBL.create({
         data: {
-          itemsize: size,
           carttid: {
             connect: {
               cartid: userCart.cartid,
@@ -197,6 +213,11 @@ exports.addItemsToCart = async (req, res, next) => {
           itemids: {
             connect: {
               itemid: itemId,
+            },
+          },
+          sizeref: {
+            connect: {
+              sizeid: sizeId,
             },
           },
           quanity: 1,
