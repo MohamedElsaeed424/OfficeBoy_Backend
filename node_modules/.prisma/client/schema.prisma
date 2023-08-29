@@ -71,6 +71,7 @@ model RoleTBL {
     UsersTBL UsersTBL[]
 }
 
+
 //-------------------------------Locations--------------------------------------------------
 model SiteTBL {
     siteid    Int            @id @unique @default(autoincrement())
