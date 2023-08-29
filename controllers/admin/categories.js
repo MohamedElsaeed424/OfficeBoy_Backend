@@ -1,15 +1,27 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+const { validationResult } = require("express-validator");
 
 exports.addCategory = async (req, res, next) => {
   const user = await prisma.UsersTBL.findUnique({
     where: {
       userid: req.userId,
     },
+    include: {
+      roleref: true,
+    },
   });
-  if (user.role == "Admin") {
+  if (user.roleref.rolename == "Admin") {
     try {
       const category = req.body.category;
+      //---------------------------Validations--------------------------
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        const error = new Error("Please Try again , Validation Failed");
+        error.statusCode = 422;
+        error.data = errors.array();
+        throw error;
+      }
       const categoryCheck = await prisma.CategoriesTbl.findUnique({
         where: {
           categoryname: category,
@@ -55,8 +67,11 @@ exports.deleteCategory = async (req, res, next) => {
     where: {
       userid: req.userId,
     },
+    include: {
+      roleref: true,
+    },
   });
-  if (user.role == "Admin") {
+  if (user.roleref.rolename == "Admin") {
     try {
       const categoryId = req.params.categoryId;
       const category = await prisma.CategoriesTbl.findUnique({
@@ -114,11 +129,23 @@ exports.updateCategory = async (req, res, next) => {
     where: {
       userid: req.userId,
     },
+    include: {
+      roleref: true,
+    },
   });
-  if (user.role == "Admin") {
+  if (user.roleref.rolename == "Admin") {
     const categoryId = req.params.categoryId;
     const categoryName = req.body.categoryName;
     try {
+      //---------------------------Validations--------------------------
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        const error = new Error("Please Try again , Validation Failed");
+        error.statusCode = 422;
+        error.data = errors.array();
+        throw error;
+      }
+
       const category = await prisma.CategoriesTbl.findUnique({
         where: {
           categoryid: parseInt(categoryId),

@@ -1,17 +1,27 @@
+const { validationResult } = require("express-validator");
+const path = require("path");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
-const fileHelper = require("../util/file");
+const sgMail = require("@sendgrid/mail");
+const markdown = require("markdown-it")();
+
+const express = require("express"); //new
+const { off } = require("process");
+const app = express(); //new
 
 exports.addItem = async (req, res, next) => {
   const user = await prisma.UsersTBL.findUnique({
     where: {
       userid: req.userId,
     },
+    include: {
+      roleref: true,
+    },
   });
-  console.log(user);
-  console.log(user.userid);
-  console.log(user.role);
-  if (user.role == "Admin") {
+
+  if (user.roleref.rolename == "Admin") {
     //----------------------------------Check for Image Exist-------
     // if (!req.file) {
     //   const error = new Error("No image Provided");
@@ -26,13 +36,21 @@ exports.addItem = async (req, res, next) => {
     // const category = itemCategory.toUpperCase();
     const category = req.body.category;
     const description = req.body.description;
-
     //const category = itemCategory.toUpperCase(); // to generalize category names
+
     //-------------------Add item-----------------
     try {
+      //---------------------------Validations--------------------------
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        const error = new Error("Please Try again , Validation Failed");
+        error.statusCode = 422;
+        error.data = errors.array();
+        throw error;
+      }
       const categoryCheck = await prisma.CategoriesTbl.findUnique({
         where: {
-          categoryname: category,
+          categoryid: parseInt(category),
         },
       });
       const itemNameCheck = await prisma.ItemsTBL.findUnique({
@@ -54,7 +72,6 @@ exports.addItem = async (req, res, next) => {
         error.data = errors.array();
         throw error;
       }
-
       const createdItem = await prisma.itemsTBL.create({
         data: {
           itemname: itemName,
@@ -67,7 +84,7 @@ exports.addItem = async (req, res, next) => {
           },
           catid: {
             connect: {
-              categoryname: category,
+              categoryid: parseInt(category),
             },
           },
           // carttid: null,
@@ -109,8 +126,11 @@ exports.deleteItem = async (req, res, next) => {
     where: {
       userid: req.userId,
     },
+    include: {
+      roleref: true,
+    },
   });
-  if (user.role == "Admin") {
+  if (user.roleref.rolename == "Admin") {
     const itemId = req.params.itemId;
     try {
       console.log(itemId);
@@ -131,6 +151,28 @@ exports.deleteItem = async (req, res, next) => {
         throw error;
       }
       // fileHelper.clearImage(item.itemimagurl);
+
+      // check if the item used in another place
+      const itemCheckInCartItems = await prisma.CartItemsTBL.findFirst({
+        where: {
+          itemids: {
+            itemid: parseInt(itemId),
+          },
+        },
+      });
+
+      if (itemCheckInCartItems) {
+        res.status(403).json({
+          message:
+            "This item exsists in one of employees cart , you can not delete it  ",
+        });
+        const error = new Error(
+          "This item exsists in one of employees cart , you can not delete it"
+        );
+        error.statusCode = 403;
+        throw error;
+      }
+
       const deletedItem = await prisma.ItemsTBL.delete({
         where: {
           itemid: parseInt(itemId),
@@ -167,8 +209,11 @@ exports.updateItem = async (req, res, next) => {
     where: {
       userid: req.userId,
     },
+    include: {
+      roleref: true,
+    },
   });
-  if (user.role == "Admin") {
+  if (user.roleref.rolename == "Admin") {
     const itemId = req.params.itemId;
     const itemName = req.body.itemName;
     // const itemImag = req.file.path.replace("\\", "/");
@@ -176,6 +221,7 @@ exports.updateItem = async (req, res, next) => {
     // const itemCategory = req.body.category;
     // const category = itemCategory.toUpperCase(); // to genralize category names
     const category = req.body.category;
+    const description = req.body.description;
     // if (req.file) {
     //   itemImag = req.file.path.replace("\\", "/");
     // }
@@ -185,6 +231,14 @@ exports.updateItem = async (req, res, next) => {
       throw error;
     }
     try {
+      //---------------------------Validations--------------------------
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        const error = new Error("Please Try again , Validation Failed");
+        error.statusCode = 422;
+        error.data = errors.array();
+        throw error;
+      }
       const item = await prisma.ItemsTBL.findUnique({
         where: {
           itemid: parseInt(itemId),
@@ -210,14 +264,15 @@ exports.updateItem = async (req, res, next) => {
         data: {
           itemname: itemName,
           itemimagurl: itemImag,
+          itemidescription: description,
           creator: {
             connect: {
               userid: req.userId,
             },
           },
           catid: {
-            create: {
-              categoryname: category,
+            connect: {
+              categoryid: parseInt(category),
             },
           },
         },
@@ -246,9 +301,11 @@ exports.getItem = async (req, res, next) => {
     where: {
       userid: req.userId,
     },
+    include: {
+      roleref: true,
+    },
   });
-  console.log(user.role);
-  if (user.role == "Admin") {
+  if (user.roleref.rolename == "Admin") {
     const itemId = req.params.itemId;
     try {
       const item = await prisma.ItemsTBL.findUnique({
