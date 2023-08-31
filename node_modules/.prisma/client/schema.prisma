@@ -71,7 +71,6 @@ model RoleTBL {
     UsersTBL UsersTBL[]
 }
 
-
 //-------------------------------Locations--------------------------------------------------
 model SiteTBL {
     siteid    Int            @id @unique @default(autoincrement())
@@ -182,6 +181,13 @@ model SizeTBL {
     sizeid    Int            @id @unique @default(autoincrement())
     sizename  String         @unique
     CartItems CartItemsTBL[]
+}
+
+//---------------------------------domain------------------------------------------------
+
+model DomainsTBL {
+    domainid Int    @id @unique @default(autoincrement())
+    domain   String @unique
 }
 
 //commands

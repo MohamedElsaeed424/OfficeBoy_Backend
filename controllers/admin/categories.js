@@ -3,16 +3,16 @@ const prisma = new PrismaClient();
 const { validationResult } = require("express-validator");
 
 exports.addCategory = async (req, res, next) => {
-  const user = await prisma.UsersTBL.findUnique({
-    where: {
-      userid: req.userId,
-    },
-    include: {
-      roleref: true,
-    },
-  });
-  if (user.roleref.rolename == "Admin") {
-    try {
+  try {
+    const user = await prisma.UsersTBL.findUnique({
+      where: {
+        userid: req.userId,
+      },
+      include: {
+        roleref: true,
+      },
+    });
+    if (user.roleref.rolename == "Admin") {
       const category = req.body.category;
       //---------------------------Validations--------------------------
       const errors = validationResult(req);
@@ -46,33 +46,36 @@ exports.addCategory = async (req, res, next) => {
           Creator: user.userid,
         });
       }
-    } catch (err) {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+    } else {
+      res.status(403).json({
+        message: "You Are not allowed to add this item , you are not Admin",
+      });
+      const error = new Error(
+        "You Are not allowed to add this Category , you are not Admin"
+      );
+      error.statusCode = 403;
+      throw error;
     }
-  } else {
-    const error = new Error(
-      "You Are not allowed to add this Category , you are not Admin"
-    );
-    error.statusCode = 403;
-    throw error;
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
   }
 };
 
 // Still not working
 exports.deleteCategory = async (req, res, next) => {
-  const user = await prisma.UsersTBL.findUnique({
-    where: {
-      userid: req.userId,
-    },
-    include: {
-      roleref: true,
-    },
-  });
-  if (user.roleref.rolename == "Admin") {
-    try {
+  try {
+    const user = await prisma.UsersTBL.findUnique({
+      where: {
+        userid: req.userId,
+      },
+      include: {
+        roleref: true,
+      },
+    });
+    if (user.roleref.rolename == "Admin") {
       const categoryId = req.params.categoryId;
       const category = await prisma.CategoriesTbl.findUnique({
         where: {
@@ -109,34 +112,37 @@ exports.deleteCategory = async (req, res, next) => {
         message: "Item deleted Successfuly",
         deletedCategory: deletedCategory,
       });
-    } catch (err) {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+    } else {
+      res.status(403).json({
+        message: "You Are not allowed to add this item , you are not Admin",
+      });
+      const error = new Error(
+        "You Are not allowed to delete this category , you are not Admin"
+      );
+      error.statusCode = 403;
+      throw error;
     }
-  } else {
-    const error = new Error(
-      "You Are not allowed to delete this category , you are not Admin"
-    );
-    error.statusCode = 403;
-    throw error;
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
   }
 };
 
 exports.updateCategory = async (req, res, next) => {
-  const user = await prisma.UsersTBL.findUnique({
-    where: {
-      userid: req.userId,
-    },
-    include: {
-      roleref: true,
-    },
-  });
-  if (user.roleref.rolename == "Admin") {
-    const categoryId = req.params.categoryId;
-    const categoryName = req.body.categoryName;
-    try {
+  try {
+    const user = await prisma.UsersTBL.findUnique({
+      where: {
+        userid: req.userId,
+      },
+      include: {
+        roleref: true,
+      },
+    });
+    if (user.roleref.rolename == "Admin") {
+      const categoryId = req.params.categoryId;
+      const categoryName = req.body.categoryName;
       //---------------------------Validations--------------------------
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -172,18 +178,21 @@ exports.updateCategory = async (req, res, next) => {
         message: "Category Updated Successfully",
         Category: updatedCategory,
       });
-    } catch (err) {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+    } else {
+      res.status(403).json({
+        message: "You Are not allowed to add this item , you are not Admin",
+      });
+      const error = new Error(
+        "You Are not allowed to update this category , you are not Admin"
+      );
+      error.statusCode = 403;
+      throw error;
     }
-  } else {
-    const error = new Error(
-      "You Are not allowed to update this category , you are not Admin"
-    );
-    error.statusCode = 403;
-    throw error;
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
   }
 };
 
