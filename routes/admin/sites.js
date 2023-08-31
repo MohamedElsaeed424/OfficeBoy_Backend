@@ -8,6 +8,7 @@ const router = express.Router();
 
 router.post(
   "/add-site-data",
+  checkRequestBody,
   [
     body("site")
       .trim()
@@ -109,7 +110,7 @@ router.post(
     //   .withMessage("room number must be number"),
   ],
   isAuth,
-  checkRequestBody,
+
   sitesController.addSiteData
 );
 

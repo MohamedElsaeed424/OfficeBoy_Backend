@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.post(
   "/add-domain",
+  checkRequestBody,
   [
     body("domainName")
       .trim()
@@ -31,7 +32,7 @@ router.post(
       }),
   ],
   isAuth,
-  checkRequestBody,
+
   domainsController.addDomain
 );
 

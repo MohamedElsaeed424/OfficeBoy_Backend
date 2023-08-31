@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.post(
   "/add-role",
+  checkRequestBody,
   [
     body("roleName")
       .trim()
@@ -31,7 +32,7 @@ router.post(
       }),
   ],
   isAuth,
-  checkRequestBody,
+
   rolesController.addRole
 );
 

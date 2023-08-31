@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.post(
   "/add-category",
+  checkRequestBody,
   [
     body("category")
       .trim()
@@ -31,7 +32,7 @@ router.post(
       }),
   ],
   isAuth,
-  checkRequestBody,
+
   categoriesController.addCategory
 );
 
@@ -39,6 +40,7 @@ router.get("/categories", categoriesController.getCategories);
 
 router.put(
   "/edit-category/:categoryId",
+  checkRequestBody,
   [
     body("categoryName")
       .trim()
@@ -63,7 +65,7 @@ router.put(
       }),
   ],
   isAuth,
-  checkRequestBody,
+
   categoriesController.updateCategory
 );
 

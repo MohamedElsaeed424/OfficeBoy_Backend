@@ -12,6 +12,7 @@ const prisma = new PrismaClient();
 
 router.post(
   "/signup",
+  checkRequestBody,
   [
     body("email")
       .not()
@@ -147,17 +148,18 @@ router.post(
     //   .isNumeric()
     //   .withMessage("roomId must be number"),
   ],
-  checkRequestBody,
+
   authController.signup
 );
 
 router.post(
   "/login",
+  checkRequestBody,
   [
     body("email").not().isEmpty().withMessage("email can not be empty"),
     body("password").not().isEmpty().withMessage("password can not be empty"),
   ],
-  checkRequestBody,
+
   authController.login
 );
 

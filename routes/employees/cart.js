@@ -13,6 +13,7 @@ router.get("/cart-Items", isAuth, cartController.getCartItems);
 
 router.post(
   "/add-cart-Item",
+  checkRequestBody,
   [
     body("Notes")
       .trim()
@@ -36,7 +37,7 @@ router.post(
   ],
 
   isAuth,
-  checkRequestBody,
+
   cartController.addItemsToCart
 );
 
