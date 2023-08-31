@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.post(
   "/add-size",
+  checkRequestBody,
   [
     body("sizeName")
       .trim()
@@ -31,7 +32,7 @@ router.post(
       }),
   ],
   isAuth,
-  checkRequestBody,
+
   sizesController.addSize
 );
 

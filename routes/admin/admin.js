@@ -8,6 +8,7 @@ const router = express.Router();
 
 router.post(
   "/add-item",
+  checkRequestBody,
   [
     body("itemname")
       .trim()
@@ -60,7 +61,6 @@ router.post(
       }),
   ],
   isAuth,
-  checkRequestBody,
   adminController.addItem
 );
 
@@ -68,6 +68,7 @@ router.delete("/item/:itemId", isAuth, adminController.deleteItem);
 
 router.put(
   "/item/:itemId",
+  checkRequestBody,
   [
     body("itemName")
       .trim()
@@ -120,7 +121,7 @@ router.put(
       }),
   ],
   isAuth,
-  checkRequestBody,
+
   adminController.updateItem
 );
 

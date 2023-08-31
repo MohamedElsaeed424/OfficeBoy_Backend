@@ -43,7 +43,7 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-app.use(express.json({ type: "application/json" }));
+app.use(bodyParser.json({ type: "application/json" }));
 // app.use(bodyParser.json());
 app.use(
   multer({ storage: fileStorage, fileFilter: fileFilter }).single("image")
