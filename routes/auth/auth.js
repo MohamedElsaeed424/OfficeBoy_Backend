@@ -89,48 +89,48 @@ router.put(
           );
         }
       }),
-    body("roleId")
-      .trim()
-      .not()
-      .isEmpty()
-      .withMessage("roleId cant be empty ,Please select roleId")
-      .isNumeric()
-      .withMessage("roleId must be number"),
-    check("siteId")
-      .trim()
-      .not()
-      .isEmpty()
-      .withMessage("siteId cant be empty ,Please select siteId")
-      .isNumeric()
-      .withMessage("siteId must be number"),
-    body("buildingId")
-      .trim()
-      .not()
-      .isEmpty()
-      .withMessage("buildingId cant be empty ,Please select buildingId")
-      .isInt()
-      .withMessage("buildingId must be number"),
-    body("officeId")
-      .trim()
-      .not()
-      .isEmpty()
-      .withMessage("officeId cant be empty ,Please select officeId")
-      .isNumeric()
-      .withMessage("officeId must be number"),
-    body("departmentId")
-      .trim()
-      .not()
-      .isEmpty()
-      .withMessage("departmentId cant be empty ,Please select departmentId")
-      .isNumeric()
-      .withMessage("departmentId must be number"),
-    body("roomId")
-      .trim()
-      .not()
-      .isEmpty()
-      .withMessage("roomId cant be empty ,Please select roomId")
-      .isNumeric()
-      .withMessage("roomId must be number"),
+    // body("roleId")
+    //   .trim()
+    //   .not()
+    //   .isEmpty()
+    //   .withMessage("roleId cant be empty ,Please select roleId")
+    //   .isNumeric()
+    //   .withMessage("roleId must be number"),
+    // check("siteId")
+    //   .trim()
+    //   .not()
+    //   .isEmpty()
+    //   .withMessage("siteId cant be empty ,Please select siteId")
+    //   .isNumeric()
+    //   .withMessage("siteId must be number"),
+    // body("buildingId")
+    //   .trim()
+    //   .not()
+    //   .isEmpty()
+    //   .withMessage("buildingId cant be empty ,Please select buildingId")
+    //   .isInt()
+    //   .withMessage("buildingId must be number"),
+    // body("officeId")
+    //   .trim()
+    //   .not()
+    //   .isEmpty()
+    //   .withMessage("officeId cant be empty ,Please select officeId")
+    //   .isNumeric()
+    //   .withMessage("officeId must be number"),
+    // body("departmentId")
+    //   .trim()
+    //   .not()
+    //   .isEmpty()
+    //   .withMessage("departmentId cant be empty ,Please select departmentId")
+    //   .isNumeric()
+    //   .withMessage("departmentId must be number"),
+    // body("roomId")
+    //   .trim()
+    //   .not()
+    //   .isEmpty()
+    //   .withMessage("roomId cant be empty ,Please select roomId")
+    //   .isNumeric()
+    //   .withMessage("roomId must be number"),
   ],
   authController.signup
 );
