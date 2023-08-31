@@ -1,6 +1,7 @@
 const express = require("express");
 
 const isAuth = require("../../middleware/is-auth");
+const checkRequestBody = require("../../middleware/bodyDataChecker");
 const adminController = require("../../controllers/admin/admin");
 const { body } = require("express-validator");
 const router = express.Router();
@@ -12,8 +13,8 @@ router.post(
       .trim()
       .not()
       .isEmpty()
-      .isLength({ min: 5 })
-      .withMessage("Please enter valid item name , minmum 5 characters")
+      .isLength({ max: 30 })
+      .withMessage("Please enter valid item name , maximum 30 characters")
       .custom(async (value, { req }) => {
         var format = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
         var checkValue = false;
@@ -29,19 +30,19 @@ router.post(
           );
         }
       }),
-    body("category")
-      .trim()
-      .not()
-      .isEmpty()
-      .withMessage("categoryId cant be empty ,Please select categoryId")
-      .isNumeric()
-      .withMessage("categoryId must be number"),
+    // body("category")
+    //   .trim()
+    //   .not()
+    //   .isEmpty()
+    //   .withMessage("categoryId cant be empty ,Please select categoryId")
+    //   .isNumeric()
+    //   .withMessage("categoryId must be number"),
     body("description")
       .trim()
       .not()
       .isEmpty()
-      .isLength({ min: 5 })
-      .withMessage("Please enter valid description , minmum 5 characters")
+      .isLength({ max: 50 })
+      .withMessage("Please enter valid description , maximum 50 characters")
       .custom(async (value, { req }) => {
         var format = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
         var checkValue = false;
@@ -59,6 +60,7 @@ router.post(
       }),
   ],
   isAuth,
+  checkRequestBody,
   adminController.addItem
 );
 
@@ -71,8 +73,8 @@ router.put(
       .trim()
       .not()
       .isEmpty()
-      .isLength({ min: 5 })
-      .withMessage("Please enter valid item name , minmum 5 characters")
+      .isLength({ max: 30 })
+      .withMessage("Please enter valid item name , maximum 30 characters")
       .custom(async (value, { req }) => {
         var format = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
         var checkValue = false;
@@ -99,8 +101,8 @@ router.put(
       .trim()
       .not()
       .isEmpty()
-      .isLength({ min: 5 })
-      .withMessage("Please enter valid description , minmum 5 characters")
+      .isLength({ max: 50 })
+      .withMessage("Please enter valid description , maximum 50 characters")
       .custom(async (value, { req }) => {
         var format = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
         var checkValue = false;
@@ -118,6 +120,7 @@ router.put(
       }),
   ],
   isAuth,
+  checkRequestBody,
   adminController.updateItem
 );
 

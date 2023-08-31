@@ -48,6 +48,7 @@ exports.getItem = async (req, res, next) => {
       },
     });
     if (!item) {
+      res.status(404).json({ message: "Sorry, No Item to be shown yet" });
       const error = new Error("Sorry, No Item to be shown");
       error.statusCode = 404;
       throw error;
@@ -94,20 +95,20 @@ exports.getCategoryItems = async (req, res, next) => {
     const itemsForCategory = await prisma.ItemsTBL.findMany({
       where: {
         catid: {
-          is: {
-            categoryname: category,
-          },
+          categoryname: category,
         },
       },
     });
     if (itemsForCategory.length === 0) {
-      res.status(404).json({ message: "Sorry, No Items to be shown" });
+      res
+        .status(404)
+        .json({ message: "Sorry, No Items to be shown for this category" });
       const error = new Error("Sorry, No Items to be shown for this category");
       error.statusCode = 404;
       throw error;
     }
     console.log(itemsForCategory);
-    res.status(200).json({ items: itemsForCategory });
+    res.status(202).json({ items: itemsForCategory });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;

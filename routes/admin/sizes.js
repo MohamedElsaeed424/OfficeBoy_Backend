@@ -1,6 +1,7 @@
 const express = require("express");
 const { body } = require("express-validator");
 const isAuth = require("../../middleware/is-auth");
+const checkRequestBody = require("../../middleware/bodyDataChecker");
 const sizesController = require("../../controllers/admin/sizes");
 const router = express.Router();
 
@@ -30,6 +31,7 @@ router.post(
       }),
   ],
   isAuth,
+  checkRequestBody,
   sizesController.addSize
 );
 

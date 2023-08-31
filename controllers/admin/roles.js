@@ -51,6 +51,9 @@ exports.addRole = async (req, res, next) => {
           creator: { userid: user.userid, name: user.firstname },
         });
     } else {
+      res.status(403).json({
+        message: "You Are not allowed to add this item , you are not Admin",
+      });
       const error = new Error(
         "You Are not allowed to add this item , you are not Admin"
       );

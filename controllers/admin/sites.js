@@ -3,23 +3,23 @@ const prisma = new PrismaClient();
 const fileHelper = require("../../util/file");
 const { validationResult } = require("express-validator");
 exports.addSiteData = async (req, res, next) => {
-  const user = await prisma.UsersTBL.findUnique({
-    where: {
-      userid: req.userId,
-    },
-    include: {
-      roleref: true,
-    },
-  });
-  if (user.roleref.rolename == "Admin") {
-    const site = req.body.site;
-    const building = req.body.building;
-    const office = req.body.office;
-    const department = req.body.department;
-    const roomName = req.body.roomName;
-    const roomNum = req.body.roomNum;
+  try {
+    const user = await prisma.UsersTBL.findUnique({
+      where: {
+        userid: req.userId,
+      },
+      include: {
+        roleref: true,
+      },
+    });
+    if (user.roleref.rolename == "Admin") {
+      const site = req.body.site;
+      const building = req.body.building;
+      const office = req.body.office;
+      const department = req.body.department;
+      const roomName = req.body.roomName;
+      const roomNum = req.body.roomNum;
 
-    try {
       //---------------------------Validations--------------------------
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -165,212 +165,217 @@ exports.addSiteData = async (req, res, next) => {
           room: createdRoom,
           creator: { userid: user.userid, name: user.firstname },
         });
-    } catch (err) {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+    } else {
+      res.status(403).json({
+        message: "You Are not allowed to add this item , you are not Admin",
+      });
+      const error = new Error(
+        "You Are not allowed to add this item , you are not Admin"
+      );
+      error.statusCode = 403;
+      throw error;
     }
-  } else {
-    const error = new Error(
-      "You Are not allowed to add this item , you are not Admin"
-    );
-    error.statusCode = 403;
-    throw error;
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
   }
 };
 
 exports.getSiteData = async (req, res, next) => {
-  const user = await prisma.UsersTBL.findUnique({
-    where: {
-      userid: req.userId,
-    },
-    include: {
-      roleref: true,
-    },
-  });
-  if (user.roleref.rolename == "Admin") {
-    try {
-      const sites = await prisma.SiteTBL.findMany();
-      if (sites.length === 0) {
-        res
-          .status(404)
-          .json({ message: "Sorry, No Sites to be shown yet , Try add some" });
-        const error = new Error(
-          "Sorry, No Sites to be shown yet , Try add some"
-        );
-        error.statusCode = 404;
-        throw error;
-      }
-      console.log(sites);
-      res.status(200).json({ sites: sites });
-    } catch (err) {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+  // const user = await prisma.UsersTBL.findUnique({
+  //   where: {
+  //     userid: req.userId,
+  //   },
+  //   include: {
+  //     roleref: true,
+  //   },
+  // });
+  // if (user.roleref.rolename == "Admin") {
+  try {
+    const sites = await prisma.SiteTBL.findMany();
+    if (sites.length === 0) {
+      res
+        .status(404)
+        .json({ message: "Sorry, No Sites to be shown yet , Try add some" });
+      const error = new Error("Sorry, No Sites to be shown yet , Try add some");
+      error.statusCode = 404;
+      throw error;
     }
-  } else {
-    const error = new Error(
-      "You Are not allowed to add this item , you are not Admin"
-    );
-    error.statusCode = 403;
-    throw error;
+    console.log(sites);
+    res.status(200).json({ sites: sites });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
   }
+  // } else {
+  //   const error = new Error(
+  //     "You Are not allowed to add this item , you are not Admin"
+  //   );
+  //   error.statusCode = 403;
+  //   throw error;
+  // }
 };
 
 exports.getBuildingData = async (req, res, next) => {
-  const user = await prisma.UsersTBL.findUnique({
-    where: {
-      userid: req.userId,
-    },
-    include: {
-      roleref: true,
-    },
-  });
-  if (user.roleref.rolename == "Admin") {
-    try {
-      const buildings = await prisma.BuildingTBL.findMany();
-      if (buildings.length === 0) {
-        res.status(404).json({
-          message: "Sorry, No buildings to be shown yet , Try add some",
-        });
-        const error = new Error(
-          "Sorry, No buildings to be shown yet , Try add some"
-        );
-        error.statusCode = 404;
-        throw error;
-      }
-      console.log(buildings);
-      res.status(200).json({ buildings: buildings });
-    } catch (err) {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+  // const user = await prisma.UsersTBL.findUnique({
+  //   where: {
+  //     userid: req.userId,
+  //   },
+  //   include: {
+  //     roleref: true,
+  //   },
+  // });
+  // if (user.roleref.rolename == "Admin") {
+  try {
+    const buildings = await prisma.BuildingTBL.findMany();
+    if (buildings.length === 0) {
+      res.status(404).json({
+        message: "Sorry, No buildings to be shown yet , Try add some",
+      });
+      const error = new Error(
+        "Sorry, No buildings to be shown yet , Try add some"
+      );
+      error.statusCode = 404;
+      throw error;
     }
-  } else {
-    const error = new Error(
-      "You Are not allowed to add this item , you are not Admin"
-    );
-    error.statusCode = 403;
-    throw error;
+    console.log(buildings);
+    res.status(200).json({ buildings: buildings });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
   }
+  // } else {
+  //   res.status(403).json({
+  //     message: "You Are not allowed to add this item , you are not Admin",
+  //   });
+  //   const error = new Error(
+  //     "You Are not allowed to add this item , you are not Admin"
+  //   );
+  //   error.statusCode = 403;
+  //   throw error;
+  // }
 };
 
 exports.getOfficeData = async (req, res, next) => {
-  const user = await prisma.UsersTBL.findUnique({
-    where: {
-      userid: req.userId,
-    },
-    include: {
-      roleref: true,
-    },
-  });
-  if (user.roleref.rolename == "Admin") {
-    try {
-      const offices = await prisma.OfficeTBL.findMany();
-      if (offices.length === 0) {
-        res.status(404).json({
-          message: "Sorry, No offices to be shown yet , Try add some",
-        });
-        const error = new Error(
-          "Sorry, No offices to be shown yet , Try add some"
-        );
-        error.statusCode = 404;
-        throw error;
-      }
-      console.log(offices);
-      res.status(200).json({ office: offices });
-    } catch (err) {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+  // const user = await prisma.UsersTBL.findUnique({
+  //   where: {
+  //     userid: req.userId,
+  //   },
+  //   include: {
+  //     roleref: true,
+  //   },
+  // });
+  // if (user.roleref.rolename == "Admin") {
+  try {
+    const offices = await prisma.OfficeTBL.findMany();
+    if (offices.length === 0) {
+      res.status(404).json({
+        message: "Sorry, No offices to be shown yet , Try add some",
+      });
+      const error = new Error(
+        "Sorry, No offices to be shown yet , Try add some"
+      );
+      error.statusCode = 404;
+      throw error;
     }
-  } else {
-    const error = new Error(
-      "You Are not allowed to add this item , you are not Admin"
-    );
-    error.statusCode = 403;
-    throw error;
+    console.log(offices);
+    res.status(200).json({ office: offices });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
   }
+  // } else {
+  //   res.status(403).json({
+  //     message: "You Are not allowed to add this item , you are not Admin",
+  //   });
+  //   const error = new Error(
+  //     "You Are not allowed to add this item , you are not Admin"
+  //   );
+  //   error.statusCode = 403;
+  //   throw error;
+  // }
 };
 
 exports.getDepartmentData = async (req, res, next) => {
-  const user = await prisma.UsersTBL.findUnique({
-    where: {
-      userid: req.userId,
-    },
-    include: {
-      roleref: true,
-    },
-  });
-  if (user.roleref.rolename == "Admin") {
-    try {
-      const departments = await prisma.DepartmentTBL.findMany();
-      if (departments.length === 0) {
-        res.status(404).json({
-          message: "Sorry, No departments to be shown yet , Try add some",
-        });
-        const error = new Error(
-          "Sorry, No departments to be shown yet , Try add some"
-        );
-        error.statusCode = 404;
-        throw error;
-      }
-      console.log(departments);
-      res.status(200).json({ departments: departments });
-    } catch (err) {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+  // const user = await prisma.UsersTBL.findUnique({
+  //   where: {
+  //     userid: req.userId,
+  //   },
+  //   include: {
+  //     roleref: true,
+  //   },
+  // });
+  // if (user.roleref.rolename == "Admin") {
+  try {
+    const departments = await prisma.DepartmentTBL.findMany();
+    if (departments.length === 0) {
+      res.status(404).json({
+        message: "Sorry, No departments to be shown yet , Try add some",
+      });
+      const error = new Error(
+        "Sorry, No departments to be shown yet , Try add some"
+      );
+      error.statusCode = 404;
+      throw error;
     }
-  } else {
-    const error = new Error(
-      "You Are not allowed to add this item , you are not Admin"
-    );
-    error.statusCode = 403;
-    throw error;
+    console.log(departments);
+    res.status(200).json({ departments: departments });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
   }
+  // } else {
+  //   const error = new Error(
+  //     "You Are not allowed to add this item , you are not Admin"
+  //   );
+  //   error.statusCode = 403;
+  //   throw error;
+  // }
 };
 
 exports.getRoomData = async (req, res, next) => {
-  const user = await prisma.UsersTBL.findUnique({
-    where: {
-      userid: req.userId,
-    },
-    include: {
-      roleref: true,
-    },
-  });
-  if (user.roleref.rolename == "Admin") {
-    try {
-      const rooms = await prisma.RoomTBL.findMany();
-      if (rooms.length === 0) {
-        res.status(404).json({
-          message: "Sorry, No rooms to be shown yet , Try add some",
-        });
-        const error = new Error(
-          "Sorry, No rooms to be shown yet , Try add some"
-        );
-        error.statusCode = 404;
-        throw error;
-      }
-      console.log(rooms);
-      res.status(200).json({ rooms: rooms });
-    } catch (err) {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+  // const user = await prisma.UsersTBL.findUnique({
+  //   where: {
+  //     userid: req.userId,
+  //   },
+  //   include: {
+  //     roleref: true,
+  //   },
+  // });
+  // if (user.roleref.rolename == "Admin") {
+  try {
+    const rooms = await prisma.RoomTBL.findMany();
+    if (rooms.length === 0) {
+      res.status(404).json({
+        message: "Sorry, No rooms to be shown yet , Try add some",
+      });
+      const error = new Error("Sorry, No rooms to be shown yet , Try add some");
+      error.statusCode = 404;
+      throw error;
     }
-  } else {
-    const error = new Error(
-      "You Are not allowed to add this item , you are not Admin"
-    );
-    error.statusCode = 403;
-    throw error;
+    console.log(rooms);
+    res.status(200).json({ rooms: rooms });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
   }
+  // } else {
+  //   const error = new Error(
+  //     "You Are not allowed to add this item , you are not Admin"
+  //   );
+  //   error.statusCode = 403;
+  //   throw error;
+  // }
 };

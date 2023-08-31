@@ -1,32 +1,42 @@
 const express = require("express");
 const { body, check } = require("express-validator");
+const dns = require("dns");
 const { PrismaClient } = require("@prisma/client");
+const emailDomainValidator = require("../../middleware/domainValidator");
+const checkRequestBody = require("../../middleware/bodyDataChecker");
 
 const authController = require("../../controllers/auth/auth");
 
 const router = express.Router();
 const prisma = new PrismaClient();
 
-router.put(
+router.post(
   "/signup",
   [
     body("email")
+      .not()
+      .isEmpty()
+      .withMessage("email can not be empty")
       .isEmail()
       .withMessage("Please Enter a Valid Email")
+
       // .normalizeEmail()
       //-------------------------If The User Already exist--------------------------------------------
       .custom(async (value, { req }) => {
-        const user = await prisma.UsersTBL.findUnique({
-          where: {
-            email: value,
-          },
-        });
-        if (user) {
-          return Promise.reject(
-            "Email address ALready Exist ,Please Enter another One."
-          );
+        if (req.body.email) {
+          const user = await prisma.UsersTBL.findUnique({
+            where: {
+              email: value,
+            },
+          });
+          if (user) {
+            return Promise.reject(
+              "Email address ALready Exist ,Please Enter another One."
+            );
+          }
         }
       }),
+    emailDomainValidator,
     //------------------------------------------------------------------
     check("password")
       .isStrongPassword({
@@ -46,12 +56,17 @@ router.put(
       .trim()
       .withMessage(
         "Password should be combination of one uppercase , one lower case, one special char, one digit and min 8 , max 20 char long"
-      ),
+      )
+      .not()
+      .isEmpty()
+      .withMessage("Password can not be empty")
+      .isLength({ min: 8 })
+      .withMessage("length of the password should be minimum 8 characters "),
     body("firstname")
       .trim()
       .not()
       .isEmpty()
-      .isLength({ min: 5 })
+      .isLength({ max: 50 })
       .withMessage("Please enter valid firstname , minmum 5 characters")
       .custom(async (value, { req }) => {
         var format = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
@@ -72,7 +87,7 @@ router.put(
       .trim()
       .not()
       .isEmpty()
-      .isLength({ min: 5 })
+      .isLength({ max: 50 })
       .withMessage("Please enter valid lastname , minmum 5 characters")
       .custom(async (value, { req }) => {
         var format = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
@@ -91,51 +106,60 @@ router.put(
       }),
     // body("roleId")
     //   .trim()
-    //   .not()
-    //   .isEmpty()
-    //   .withMessage("roleId cant be empty ,Please select roleId")
+    //   // .not()
+    //   // .isEmpty()
+    //   // .withMessage("roleId cant be empty ,Please select roleId")
     //   .isNumeric()
     //   .withMessage("roleId must be number"),
     // check("siteId")
     //   .trim()
-    //   .not()
-    //   .isEmpty()
-    //   .withMessage("siteId cant be empty ,Please select siteId")
+    //   // .not()
+    //   // .isEmpty()
+    //   // .withMessage("siteId cant be empty ,Please select siteId")
     //   .isNumeric()
     //   .withMessage("siteId must be number"),
     // body("buildingId")
     //   .trim()
-    //   .not()
-    //   .isEmpty()
-    //   .withMessage("buildingId cant be empty ,Please select buildingId")
+    //   // .not()
+    //   // .isEmpty()
+    //   // .withMessage("buildingId cant be empty ,Please select buildingId")
     //   .isInt()
     //   .withMessage("buildingId must be number"),
     // body("officeId")
     //   .trim()
-    //   .not()
-    //   .isEmpty()
-    //   .withMessage("officeId cant be empty ,Please select officeId")
+    //   // .not()
+    //   // .isEmpty()
+    //   // .withMessage("officeId cant be empty ,Please select officeId")
     //   .isNumeric()
     //   .withMessage("officeId must be number"),
     // body("departmentId")
     //   .trim()
-    //   .not()
-    //   .isEmpty()
-    //   .withMessage("departmentId cant be empty ,Please select departmentId")
+    //   // .not()
+    //   // .isEmpty()
+    //   // .withMessage("departmentId cant be empty ,Please select departmentId")
     //   .isNumeric()
     //   .withMessage("departmentId must be number"),
     // body("roomId")
     //   .trim()
-    //   .not()
-    //   .isEmpty()
-    //   .withMessage("roomId cant be empty ,Please select roomId")
+    //   // .not()
+    //   // .isEmpty()
+    //   // .withMessage("roomId cant be empty ,Please select roomId")
     //   .isNumeric()
     //   .withMessage("roomId must be number"),
   ],
+  checkRequestBody,
   authController.signup
 );
 
-router.post("/login", authController.login);
+router.post(
+  "/login",
+  [
+    body("email").not().isEmpty().withMessage("email can not be empty"),
+    body("password").not().isEmpty().withMessage("password can not be empty"),
+  ],
+  checkRequestBody,
+  authController.login
+);
 
 router.delete("/logout", authController.logout);
 

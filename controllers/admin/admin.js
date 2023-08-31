@@ -12,34 +12,33 @@ const { off } = require("process");
 const app = express(); //new
 
 exports.addItem = async (req, res, next) => {
-  const user = await prisma.UsersTBL.findUnique({
-    where: {
-      userid: req.userId,
-    },
-    include: {
-      roleref: true,
-    },
-  });
+  try {
+    const user = await prisma.UsersTBL.findUnique({
+      where: {
+        userid: req.userId,
+      },
+      include: {
+        roleref: true,
+      },
+    });
+    if (user.roleref.rolename == "Admin") {
+      //----------------------------------Check for Image Exist-------
+      // if (!req.file) {
+      //   const error = new Error("No image Provided");
+      //   error.statusCode = 422;
+      //   throw error;
+      // }
+      const itemName = req.body.itemname;
+      // const itemImag = req.file.path.replace("\\", "/");
+      const itemImag = req.body.itemimagurl;
+      // const itemCategory = req.body.categoryname;
+      // console.log("itemCategory:", itemCategory);
+      // const category = itemCategory.toUpperCase();
+      const category = req.body.category;
+      const description = req.body.description;
+      //const category = itemCategory.toUpperCase(); // to generalize category names
 
-  if (user.roleref.rolename == "Admin") {
-    //----------------------------------Check for Image Exist-------
-    // if (!req.file) {
-    //   const error = new Error("No image Provided");
-    //   error.statusCode = 422;
-    //   throw error;
-    // }
-    const itemName = req.body.itemname;
-    // const itemImag = req.file.path.replace("\\", "/");
-    const itemImag = req.body.itemimagurl;
-    // const itemCategory = req.body.categoryname;
-    // console.log("itemCategory:", itemCategory);
-    // const category = itemCategory.toUpperCase();
-    const category = req.body.category;
-    const description = req.body.description;
-    //const category = itemCategory.toUpperCase(); // to generalize category names
-
-    //-------------------Add item-----------------
-    try {
+      //-------------------Add item-----------------
       //---------------------------Validations--------------------------
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -105,34 +104,37 @@ exports.addItem = async (req, res, next) => {
           item: createdItem,
           creator: { userid: user.userid, name: user.firstname },
         });
-    } catch (err) {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+    } else {
+      res.status(403).json({
+        message: "You Are not allowed to add this item , you are not Admin",
+      });
+      const error = new Error(
+        "You Are not allowed to add this item , you are not Admin"
+      );
+      error.statusCode = 403;
+      throw error;
     }
-  } else {
-    const error = new Error(
-      "You Are not allowed to add this item , you are not Admin"
-    );
-    error.statusCode = 403;
-    throw error;
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
   }
 };
 //-----------------------delete item-------------
 // category deleted
 exports.deleteItem = async (req, res, next) => {
-  const user = await prisma.UsersTBL.findUnique({
-    where: {
-      userid: req.userId,
-    },
-    include: {
-      roleref: true,
-    },
-  });
-  if (user.roleref.rolename == "Admin") {
-    const itemId = req.params.itemId;
-    try {
+  try {
+    const user = await prisma.UsersTBL.findUnique({
+      where: {
+        userid: req.userId,
+      },
+      include: {
+        roleref: true,
+      },
+    });
+    if (user.roleref.rolename == "Admin") {
+      const itemId = req.params.itemId;
       console.log(itemId);
       console.log(parseInt(itemId));
       const item = await prisma.ItemsTBL.findUnique({
@@ -189,48 +191,52 @@ exports.deleteItem = async (req, res, next) => {
         message: "Item deleted Successfuly",
         deletedItem: deletedItem,
       });
-    } catch (err) {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+    } else {
+      res.status(403).json({
+        message: "You Are not allowed to add this item , you are not Admin",
+      });
+      const error = new Error(
+        "You Are not allowed to add this item , you are not Admin"
+      );
+      error.statusCode = 403;
+      throw error;
     }
-  } else {
-    const error = new Error(
-      "You Are not allowed to add this item , you are not Admin"
-    );
-    error.statusCode = 403;
-    throw error;
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
   }
 };
 //-------------edit item-----------------
 exports.updateItem = async (req, res, next) => {
-  const user = await prisma.UsersTBL.findUnique({
-    where: {
-      userid: req.userId,
-    },
-    include: {
-      roleref: true,
-    },
-  });
-  if (user.roleref.rolename == "Admin") {
-    const itemId = req.params.itemId;
-    const itemName = req.body.itemName;
-    // const itemImag = req.file.path.replace("\\", "/");
-    const itemImag = req.body.itemimagurl;
-    // const itemCategory = req.body.category;
-    // const category = itemCategory.toUpperCase(); // to genralize category names
-    const category = req.body.category;
-    const description = req.body.description;
-    // if (req.file) {
-    //   itemImag = req.file.path.replace("\\", "/");
-    // }
-    if (!itemImag) {
-      const error = new Error("Missing an Image Here!");
-      error.statusCode = 422;
-      throw error;
-    }
-    try {
+  try {
+    const user = await prisma.UsersTBL.findUnique({
+      where: {
+        userid: req.userId,
+      },
+      include: {
+        roleref: true,
+      },
+    });
+    if (user.roleref.rolename == "Admin") {
+      const itemId = req.params.itemId;
+      const itemName = req.body.itemName;
+      // const itemImag = req.file.path.replace("\\", "/");
+      const itemImag = req.body.itemimagurl;
+      // const itemCategory = req.body.category;
+      // const category = itemCategory.toUpperCase(); // to genralize category names
+      const category = req.body.category;
+      const description = req.body.description;
+      // if (req.file) {
+      //   itemImag = req.file.path.replace("\\", "/");
+      // }
+      if (!itemImag) {
+        const error = new Error("Missing an Image Here!");
+        error.statusCode = 422;
+        throw error;
+      }
+
       //---------------------------Validations--------------------------
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -281,33 +287,38 @@ exports.updateItem = async (req, res, next) => {
       res
         .status(200)
         .json({ message: "Item Updated Successfully", item: updatedItem });
-    } catch (err) {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+    } else {
+      res.status(403).json({
+        message: "You Are not allowed to add this item , you are not Admin",
+      });
+
+      const error = new Error(
+        "You Are not allowed to add this item , you are not Admin"
+      );
+      error.statusCode = 403;
+      throw error;
     }
-  } else {
-    const error = new Error(
-      "You Are not allowed to add this item , you are not Admin"
-    );
-    error.statusCode = 403;
-    throw error;
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
   }
 };
+
 ///----------------------------Read item / search for item--------------------
 exports.getItem = async (req, res, next) => {
-  const user = await prisma.UsersTBL.findUnique({
-    where: {
-      userid: req.userId,
-    },
-    include: {
-      roleref: true,
-    },
-  });
-  if (user.roleref.rolename == "Admin") {
-    const itemId = req.params.itemId;
-    try {
+  try {
+    const user = await prisma.UsersTBL.findUnique({
+      where: {
+        userid: req.userId,
+      },
+      include: {
+        roleref: true,
+      },
+    });
+    if (user.roleref.rolename == "Admin") {
+      const itemId = req.params.itemId;
       const item = await prisma.ItemsTBL.findUnique({
         where: {
           itemid: parseInt(itemId),
@@ -320,17 +331,20 @@ exports.getItem = async (req, res, next) => {
       }
       console.log(item);
       res.status(200).json({ item: item });
-    } catch (err) {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
-      next(err);
+    } else {
+      res.status(403).json({
+        message: "You Are not allowed to add this item , you are not Admin",
+      });
+      const error = new Error(
+        "You Are not allowed to add this item , you are not Admin"
+      );
+      error.statusCode = 403;
+      throw error;
     }
-  } else {
-    const error = new Error(
-      "You Are not allowed to add this item , you are not Admin"
-    );
-    error.statusCode = 403;
-    throw error;
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
   }
 };

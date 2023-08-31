@@ -2,6 +2,7 @@ const express = require("express");
 const { body } = require("express-validator");
 const { PrismaClient } = require("@prisma/client");
 const isAuth = require("../../middleware/is-auth");
+const checkRequestBody = require("../../middleware/bodyDataChecker");
 
 const cartController = require("../../controllers/employees/cart");
 
@@ -33,13 +34,25 @@ router.post(
         }
       }),
   ],
+
   isAuth,
+  checkRequestBody,
   cartController.addItemsToCart
 );
 
-router.put("/edit-site-cart", isAuth, cartController.editSiteInCart);
+router.put(
+  "/edit-site-cart",
+  isAuth,
+  checkRequestBody,
+  cartController.editSiteInCart
+);
 
-router.put("/cart-Item/:ItemId", isAuth, cartController.editItemInCart);
+router.put(
+  "/cart-Item/:ItemId",
+  isAuth,
+  checkRequestBody,
+  cartController.editItemInCart
+);
 
 router.delete("/cart-Item/:ItemId", isAuth, cartController.deleteItemFromCart);
 

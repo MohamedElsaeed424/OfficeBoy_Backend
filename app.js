@@ -12,9 +12,11 @@ const categoriesRoutes = require("./routes/admin/categories");
 const sitesRoutes = require("./routes/admin/sites");
 const rolesRoutes = require("./routes/admin/roles");
 const sizesRoutes = require("./routes/admin/sizes");
-const officeBoyRoutes = require("./routes/officeBoy");
+const domainsRoutes = require("./routes/admin/domains");
+const shopRoutes = require("./routes/shop/shop");
 const { PrismaClient } = require("@prisma/client");
 const isAuth = require("./middleware/is-auth");
+const { error } = require("console");
 const prisma = new PrismaClient();
 
 const app = express();
@@ -41,7 +43,8 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-app.use(bodyParser.json());
+app.use(express.json({ type: "application/json" }));
+// app.use(bodyParser.json());
 app.use(
   multer({ storage: fileStorage, fileFilter: fileFilter }).single("image")
 );
@@ -55,6 +58,43 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type , Authorization");
   next();
 });
+
+// check for json data only
+app.use((err, req, res, next) => {
+  if (
+    (err instanceof SyntaxError && err.status === 400 && "body" in err) ||
+    !req.body
+  ) {
+    res
+      .status(400)
+      .json({ error: "Invalid JSON data. Check your body entries" });
+  } else {
+    next();
+  }
+});
+app.use("/admin", adminRoutes);
+app.use("/admin/categories", categoriesRoutes);
+app.use("/admin/sites", sitesRoutes);
+app.use("/admin/roles", rolesRoutes);
+app.use("/admin/sizes", sizesRoutes);
+app.use("/admin/domains", domainsRoutes);
+app.use("/order", orderRoutes);
+app.use("/shop", shopRoutes);
+app.use("/auth", authRoutes);
+app.use("/cart", cartRoutes);
+
+//--------------------------------Gnenral Error handling ----------------------------
+
+app.use((error, req, res, next) => {
+  console.log(error);
+  const status = error.statusCode || 500;
+  const message = error.message;
+  const data = error.data;
+  res.status(status).json({ message: message, data: data });
+});
+
+app.listen(8080);
+
 // app.post("/token", async (req, res) => {
 //   const refreshToken = req.body.refreshToken;
 //   try {
@@ -90,23 +130,3 @@ app.use((req, res, next) => {
 //     { expiresIn: "2h" }
 //   );
 // }
-app.use("/admin", adminRoutes);
-app.use("/admin/categories", categoriesRoutes);
-app.use("/admin/sites", sitesRoutes);
-app.use("/admin/roles", rolesRoutes);
-app.use("/admin/sizes", sizesRoutes);
-app.use("/order", orderRoutes);
-app.use("/officeBoy", officeBoyRoutes);
-app.use("/auth", authRoutes);
-app.use("/cart", cartRoutes);
-
-//--------------------------------Gnenral Error handling ----------------------------
-app.use((error, req, res, next) => {
-  console.log(error);
-  const status = error.statusCode || 500;
-  const message = error.message;
-  const data = error.data;
-  res.status(status).json({ message: message, data: data });
-});
-
-app.listen(8080);

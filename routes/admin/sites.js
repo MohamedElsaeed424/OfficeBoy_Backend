@@ -1,6 +1,7 @@
 const express = require("express");
 
 const isAuth = require("../../middleware/is-auth");
+const checkRequestBody = require("../../middleware/bodyDataChecker");
 const sitesController = require("../../controllers/admin/sites");
 const { body } = require("express-validator");
 const router = express.Router();
@@ -12,8 +13,8 @@ router.post(
       .trim()
       .not()
       .isEmpty()
-      .isLength({ min: 5 })
-      .withMessage("Please enter valid site name , minmum 5 characters")
+      .isLength({ max: 50 })
+      .withMessage("Please enter valid site  , maximum 50 characters")
       .custom(async (value, { req }) => {
         var format = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
         var checkValue = false;
@@ -33,8 +34,8 @@ router.post(
       .trim()
       .not()
       .isEmpty()
-      .isLength({ min: 5 })
-      .withMessage("Please enter valid building name , minmum 5 characters")
+      .isLength({ max: 50 })
+      .withMessage("Please enter valid building name  , maximum 50 characters")
       .custom(async (value, { req }) => {
         var format = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
         var checkValue = false;
@@ -61,8 +62,8 @@ router.post(
       .trim()
       .not()
       .isEmpty()
-      .isLength({ min: 5 })
-      .withMessage("Please enter valid department name , minmum 5 characters")
+      .isLength({ max: 50 })
+      .withMessage("Please enter valid department , maximum 50 characters")
       .custom(async (value, { req }) => {
         var format = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
         var checkValue = false;
@@ -82,8 +83,8 @@ router.post(
       .trim()
       .not()
       .isEmpty()
-      .isLength({ max: 5 })
-      .withMessage("Please enter valid room name , maximum 10 characters")
+      .isLength({ max: 50 })
+      .withMessage("Please enter valid room name , maximum 50 characters")
       .custom(async (value, { req }) => {
         var format = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
         var checkValue = false;
@@ -99,15 +100,16 @@ router.post(
           );
         }
       }),
-    body("roomNum")
-      .trim()
-      .not()
-      .isEmpty()
-      .withMessage("room number cant be empty ,Please select room number")
-      .isNumeric()
-      .withMessage("room number must be number"),
+    // body("roomNum")
+    //   .trim()
+    //   .not()
+    //   .isEmpty()
+    //   .withMessage("room number cant be empty ,Please select room number")
+    //   .isNumeric()
+    //   .withMessage("room number must be number"),
   ],
   isAuth,
+  checkRequestBody,
   sitesController.addSiteData
 );
 

@@ -1,6 +1,7 @@
 const express = require("express");
 const { body } = require("express-validator");
 const isAuth = require("../../middleware/is-auth");
+const checkRequestBody = require("../../middleware/bodyDataChecker");
 const categoriesController = require("../../controllers/admin/categories");
 const router = express.Router();
 
@@ -11,8 +12,8 @@ router.post(
       .trim()
       .not()
       .isEmpty()
-      .isLength({ min: 5 })
-      .withMessage("Please enter valid category name  , minmum 5 characters")
+      .isLength({ max: 50 })
+      .withMessage("Please enter valid category name , maximum 50 characters")
       .custom(async (value, { req }) => {
         var format = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
         var checkValue = false;
@@ -24,12 +25,13 @@ router.post(
         console.log(checkValue);
         if (checkValue == true) {
           return Promise.reject(
-            " category name should contains only upper and lower cases characters."
+            " category name should contains only upper and lower cases characters and spaces."
           );
         }
       }),
   ],
   isAuth,
+  checkRequestBody,
   categoriesController.addCategory
 );
 
@@ -42,8 +44,8 @@ router.put(
       .trim()
       .not()
       .isEmpty()
-      .isLength({ min: 5 })
-      .withMessage("Please enter valid category name  , minmum 5 characters")
+      .isLength({ max: 50 })
+      .withMessage("Please enter valid category name , maximum 50 characters")
       .custom(async (value, { req }) => {
         var format = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
         var checkValue = false;
@@ -61,6 +63,7 @@ router.put(
       }),
   ],
   isAuth,
+  checkRequestBody,
   categoriesController.updateCategory
 );
 
