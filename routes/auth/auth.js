@@ -2,8 +2,9 @@ const express = require("express");
 const { body, check } = require("express-validator");
 const dns = require("dns");
 const { PrismaClient } = require("@prisma/client");
-const emailDomainValidator = require("../../middleware/domainValidator");
+const emailDomainValidator = require("../../middleware/emails/domainValidator");
 const checkRequestBody = require("../../middleware/bodyDataChecker");
+const englishValidator = require("../../middleware/emails/englishValidator");
 
 const authController = require("../../controllers/auth/auth");
 
@@ -38,6 +39,8 @@ router.post(
         }
       }),
     emailDomainValidator,
+    englishValidator,
+
     //------------------------------------------------------------------
     check("password")
       .isStrongPassword({
