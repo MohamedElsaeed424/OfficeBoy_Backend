@@ -38,31 +38,33 @@ model UsersTBL {
 }
 
 model EmployeeTBL {
-    emp           UsersTBL      @relation(fields: [empid], references: [userid])
-    empid         Int           @id @unique @default(autoincrement())
-    roomid        Int
-    romid         RoomTBL       @relation(fields: [roomid], references: [roomid])
-    officeid      Int
-    offid         OfficeTBL     @relation(fields: [officeid], references: [officeid])
-    siteid        Int
-    sitid         SiteTBL       @relation(fields: [siteid], references: [siteid])
-    buildingid    Int
-    bulidingref   BuildingTBL   @relation(fields: [buildingid], references: [buildingid])
-    departmentid  Int
-    departmentref DepartmentTBL @relation(fields: [departmentid], references: [departmentid])
-    Cart          CartTBL[]
+    emp              UsersTBL           @relation(fields: [empid], references: [userid])
+    empid            Int                @id @unique @default(autoincrement())
+    roomid           Int
+    romid            RoomTBL            @relation(fields: [roomid], references: [roomid])
+    officeid         Int
+    offid            OfficeTBL          @relation(fields: [officeid], references: [officeid])
+    siteid           Int
+    sitid            SiteTBL            @relation(fields: [siteid], references: [siteid])
+    buildingid       Int
+    bulidingref      BuildingTBL        @relation(fields: [buildingid], references: [buildingid])
+    departmentid     Int
+    departmentref    DepartmentTBL      @relation(fields: [departmentid], references: [departmentid])
+    Cart             CartTBL[]
     // cartid   Int
     // carttid  CartTBL   @relation(fields: [cartid], references: [cartid])
-    OrdersTBL     OrdersTBL[]
+    OrdersTBL        OrdersTBL[]
+    UpcomingItemsTBL UpcomingItemsTBL[]
 }
 
 model OfficeBoyTBL {
-    officeboyid Int       @id @unique @default(autoincrement())
-    officeboy   UsersTBL  @relation(fields: [officeboyid], references: [userid])
+    officeboyid Int          @id @unique @default(autoincrement())
+    officeboy   UsersTBL     @relation(fields: [officeboyid], references: [userid])
     officeid    Int
-    offid       OfficeTBL @relation(fields: [officeid], references: [officeid])
+    offid       OfficeTBL    @relation(fields: [officeid], references: [officeid])
     siteid      Int
-    siteref     SiteTBL   @relation(fields: [siteid], references: [siteid])
+    siteref     SiteTBL      @relation(fields: [siteid], references: [siteid])
+    UpcomingTBL UpcomingTBL?
 }
 
 model RoleTBL {
@@ -140,7 +142,25 @@ model ItemsTBL {
     CartItems        CartItemsTBL[]
 }
 
-//---------------------------------Orders------------------------------------------------
+//---------------------------------Items ------------------------------------------------
+model UpcomingTBL {
+    upcomingid    Int                @id @unique @default(autoincrement())
+    officeboyid   Int                @unique
+    officeboyref  OfficeBoyTBL       @relation(fields: [officeboyid], references: [officeboyid])
+    upcomingItems UpcomingItemsTBL[]
+}
+
+model UpcomingItemsTBL {
+    upcomingitemid Int             @id @unique @default(autoincrement())
+    empid          Int
+    empref         EmployeeTBL     @relation(fields: [empid], references: [empid])
+    statusid       Int             @unique
+    statusref      StatusTBL       @relation(fields: [statusid], references: [statusid])
+    upcomingid     Int
+    upcomingref    UpcomingTBL     @relation(fields: [upcomingid], references: [upcomingid])
+    OrderItemsTBL  OrderItemsTBL[]
+}
+
 model OrdersTBL {
     orderid    Int             @id @unique @default(autoincrement())
     empid      Int
@@ -149,12 +169,16 @@ model OrdersTBL {
 }
 
 model OrderItemsTBL {
-    orderitemid  Int       @id @unique @default(autoincrement())
-    itemname     String
-    itemquantity Int
-    itemsize     String
-    orderid      Int
-    ordersid     OrdersTBL @relation(fields: [orderid], references: [orderid])
+    orderitemid      Int               @id @unique @default(autoincrement())
+    itemname         String
+    itemquantity     Int
+    itemsize         String
+    statusid         Int               @unique
+    statusref        StatusTBL         @relation(fields: [statusid], references: [statusid])
+    orderid          Int
+    ordersid         OrdersTBL         @relation(fields: [orderid], references: [orderid])
+    upcomingitemid   Int?
+    UpcomingItemsTBL UpcomingItemsTBL? @relation(fields: [upcomingitemid], references: [upcomingitemid])
 }
 
 model CartTBL {
@@ -181,6 +205,14 @@ model SizeTBL {
     sizeid    Int            @id @unique @default(autoincrement())
     sizename  String         @unique
     CartItems CartItemsTBL[]
+}
+
+//-----------------------------Status--------------------------------
+model StatusTBL {
+    statusid      Int               @id @unique @default(autoincrement())
+    status        String            @unique
+    OrderItemsTBL OrderItemsTBL?
+    UpcomingTBL   UpcomingItemsTBL?
 }
 
 //---------------------------------domain------------------------------------------------

@@ -13,6 +13,7 @@ const sitesRoutes = require("./routes/admin/sites");
 const rolesRoutes = require("./routes/admin/roles");
 const sizesRoutes = require("./routes/admin/sizes");
 const domainsRoutes = require("./routes/admin/domains");
+const statusRoutes = require("./routes/admin/status");
 const shopRoutes = require("./routes/shop/shop");
 const { PrismaClient } = require("@prisma/client");
 const isAuth = require("./middleware/is-auth");
@@ -78,6 +79,7 @@ app.use("/admin/sites", sitesRoutes);
 app.use("/admin/roles", rolesRoutes);
 app.use("/admin/sizes", sizesRoutes);
 app.use("/admin/domains", domainsRoutes);
+app.use("/admin/status", statusRoutes);
 app.use("/order", orderRoutes);
 app.use("/shop", shopRoutes);
 app.use("/auth", authRoutes);
@@ -90,7 +92,7 @@ app.use((error, req, res, next) => {
   const status = error.statusCode || 500;
   const message = error.message;
   const data = error.data;
-  res.status(status).json({ message: message, data: data });
+  res.status(status).json({ message: message, errors: data });
 });
 
 app.listen(8080);

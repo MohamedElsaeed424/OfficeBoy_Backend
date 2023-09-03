@@ -224,7 +224,7 @@ exports.signup = catchAsync(async (req, res, next) => {
             message: "User Created Successfully",
             userId: newUser.userid,
           });
-      } else if (roleName == "office Boy") {
+      } else if (RoleCheck.rolename == "office Boy") {
         const siteCheck = await prisma.SiteTBL.findUnique({
           where: {
             siteid: parseInt(siteId),
@@ -255,10 +255,10 @@ exports.signup = catchAsync(async (req, res, next) => {
             lastname: lastname,
             email: email,
             password: hashedPassword,
-          },
-          roleref: {
-            connect: {
-              roleid: parseInt(roleId),
+            roleref: {
+              connect: {
+                roleid: parseInt(roleId),
+              },
             },
           },
         });
@@ -288,6 +288,16 @@ exports.signup = catchAsync(async (req, res, next) => {
             message: "User Created Successfully",
             userId: newOfficeBoy.officeboyid,
           });
+      } else {
+        res.status(403).json({
+          message: "you selected Invalid Role , see again the available roles",
+        });
+        const error = new Error(
+          "you selected Invalid Role , see again the available roles"
+        );
+        error.statusCode = 403;
+        error.data = errors.array();
+        throw error;
       }
     }
 
