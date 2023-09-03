@@ -6,21 +6,25 @@ const prisma = new PrismaClient();
 
 exports.createOrder = async (req, res, next) => {
   //---------------------------------Validations-----------------
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const error = new Error("Please Enter Valid Name");
-    error.statusCode = 422;
-    throw error;
-  }
+
   try {
+    // const errors = validationResult(req);
+    // if (!errors.isEmpty()) {
+    //   const error = new Error("Please Enter Valid Name");
+    //   error.statusCode = 422;
+    //   throw error;
+    // }
     const user = await prisma.EmployeeTBL.findUnique({
       where: {
         empid: req.userId,
       },
     });
     if (!user) {
+      res.status(404).json({
+        message: "Not authorized to create Order , Should login first",
+      });
       const error = new Error(
-        "Not authorized to add items to cart , Should login first"
+        "Not authorized to create Order , Should login first"
       );
       error.statusCode = 404;
       throw error;
@@ -67,6 +71,7 @@ exports.createOrder = async (req, res, next) => {
           },
         },
       });
+
       // delete items from cart
       const deletedCartItems = await prisma.CartItemsTBL.delete({
         where: {

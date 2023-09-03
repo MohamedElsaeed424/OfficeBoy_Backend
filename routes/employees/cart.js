@@ -17,8 +17,8 @@ router.post(
   [
     body("Notes")
       .trim()
-      .isLength({ min: 5 })
-      .withMessage("Please enter valid room name , minimum 5 characters")
+      .isLength({ max: 30 })
+      .withMessage("Please enter valid room name , maximum 30 characters")
       .custom(async (value, { req }) => {
         var format = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
         var checkValue = false;
