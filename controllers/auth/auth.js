@@ -1,5 +1,4 @@
 const { validationResult } = require("express-validator");
-
 const path = require("path");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -31,30 +30,28 @@ const catchAsync = (fn) => (req, res, next) => {
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
+  const firstname = req.body.firstname;
+  const lastname = req.body.lastname;
+  const email = req.body.email;
+  // const roleName = req.body.role;
+  const roleId = req.body.roleId;
+  const password = req.body.password;
+  const siteId = req.body.siteId;
+  const buildingId = req.body.buildingId;
+  const officeId = req.body.officeId;
+  const departmentId = req.body.departmentId;
+  const roomId = req.body.roomId;
+  console.log(siteId);
+  //---------------------------Validations--------------------------
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error("Please Try again , Validation Failed");
+    error.statusCode = 422;
+    error.data = errors.array();
+    throw error;
+  }
+  //-------------------------Hashing The Password for security------------------
   try {
-    const firstname = req.body.firstname;
-    const lastname = req.body.lastname;
-    const email = req.body.email;
-    // const roleName = req.body.role;
-    const roleId = req.body.roleId;
-    const password = req.body.password;
-    const siteId = req.body.siteId;
-    const buildingId = req.body.buildingId;
-    const officeId = req.body.officeId;
-    const departmentId = req.body.departmentId;
-    const roomId = req.body.roomId;
-    // console.log(siteId);
-    //---------------------------Validations--------------------------
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      // res.status(422).json({ message: "Please Try again , Validation Failed" });
-      const error = new Error("Please Try again , Validation Failed");
-      error.statusCode = 422;
-      error.data = errors.array();
-      throw error;
-    }
-    //-------------------------Hashing The Password for security------------------
-
     const hashedPassword = await bcrypt.hash(password, 12);
     const isThereAnyRols = await prisma.RoleTBL.findMany();
     if (isThereAnyRols.length == 0) {
@@ -331,27 +328,18 @@ exports.signup = catchAsync(async (req, res, next) => {
 //--------------------login logic----------------------------
 
 exports.login = async (req, res, next) => {
-  try {
-    const email = req.body.email;
-    const password = req.body.password;
-    console.log(req.userId);
-    //---------------------------Validations--------------------------
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      // res.status(422).json({ message: "Please Try again , Validation Failed" });
-      const error = new Error("Please Try again , Validation Failed");
-      error.statusCode = 422;
-      error.data = errors.array();
-      throw error;
-    }
-    if (req.userId !== undefined) {
-      res
-        .status(403)
-        .json({ message: "You can not login There is user already Exsist" });
-      const error = new Error("ou can not login There is user already Exsist");
-      error.statusCode = 404;
-      throw error;
-    } else {
+  const email = req.body.email;
+  const password = req.body.password;
+  console.log(req.userId);
+  if (req.userId !== undefined) {
+    res
+      .status(403)
+      .json({ message: "You can not login There is user already Exsist" });
+    const error = new Error("ou can not login There is user already Exsist");
+    error.statusCode = 404;
+    throw error;
+  } else {
+    try {
       const user = await prisma.UsersTBL.findUnique({
         where: {
           email: email,
@@ -417,13 +405,13 @@ exports.login = async (req, res, next) => {
       });
       console.log(`${email}: Loged in successfully`);
       return;
+    } catch (err) {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+      return err;
     }
-  } catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
-    next(err);
-    return err;
   }
 };
 function generateAccessToken(user) {
