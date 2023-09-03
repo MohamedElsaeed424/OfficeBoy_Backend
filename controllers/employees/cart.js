@@ -85,7 +85,7 @@ exports.getCartItems = async (req, res, next) => {
 exports.addItemsToCart = async (req, res, next) => {
   const itemId = req.body.itemId;
   const sizeId = req.body.sizeId;
-  const officeBoyId = req.body.officeBoyId;
+  // const officeBoyId = req.body.officeBoyId;
   const notes = req.body.Notes;
 
   try {
@@ -122,33 +122,33 @@ exports.addItemsToCart = async (req, res, next) => {
       throw error;
     }
 
-    const availableOfficeBoys = await prisma.OfficeBoyTBL.findMany({
-      where: {
-        siteref: {
-          siteid: user.siteid,
-        },
-      },
-    });
-    console.log(availableOfficeBoys, "Available Office Boys ");
-    const requestedOfficeBoy = await prisma.officeBoyTBL.findUnique({
-      where: {
-        officeboyid: officeBoyId,
-      },
-    });
-    console.log(requestedOfficeBoy, "Office Boy Selected");
-    let isReqOfficeBoyExist = availableOfficeBoys.includes(requestedOfficeBoy);
-    console.log(isReqOfficeBoyExist);
-    if (isReqOfficeBoyExist) {
-      res.status(403).json({
-        message:
-          "Sorry, You can not select this office boy , he OR she maybe not in your site",
-      });
-      const error = new Error(
-        "Sorry, You can not select this office boy ,he OR she maybe not in your site"
-      );
-      error.statusCode = 403;
-      throw error;
-    }
+    // const availableOfficeBoys = await prisma.OfficeBoyTBL.findMany({
+    //   where: {
+    //     siteref: {
+    //       siteid: user.siteid,
+    //     },
+    //   },
+    // });
+    // console.log(availableOfficeBoys, "Available Office Boys ");
+    // const requestedOfficeBoy = await prisma.officeBoyTBL.findUnique({
+    //   where: {
+    //     officeboyid: officeBoyId,
+    //   },
+    // });
+    // console.log(requestedOfficeBoy, "Office Boy Selected");
+    // let isReqOfficeBoyExist = availableOfficeBoys.includes(requestedOfficeBoy);
+    // console.log(isReqOfficeBoyExist);
+    // if (isReqOfficeBoyExist) {
+    //   res.status(403).json({
+    //     message:
+    //       "Sorry, You can not select this office boy , he OR she maybe not in your site",
+    //   });
+    //   const error = new Error(
+    //     "Sorry, You can not select this office boy ,he OR she maybe not in your site"
+    //   );
+    //   error.statusCode = 403;
+    //   throw error;
+    // }
     // Find the user's cart or create a new cart if it doesn't exist
     let userCart = await prisma.CartTBL.findFirst({
       where: {
@@ -229,7 +229,6 @@ exports.addItemsToCart = async (req, res, next) => {
     res.json({
       message: "Added to cart successfully",
       userCart: userCart,
-      availableOfficeBoys: availableOfficeBoys,
       cartItem: cartItem,
     });
   } catch (err) {

@@ -284,12 +284,22 @@ exports.signup = catchAsync(async (req, res, next) => {
             },
           },
         });
+        const createdUpcomming = await prisma.UpcomingTBL.create({
+          data: {
+            officeboyref: {
+              connect: {
+                officeboyid: newOfficeBoy.officeboyid,
+              },
+            },
+          },
+        });
         res
           .status(201)
           // connect with Front end...
           .json({
             message: "User Created Successfully",
             userId: newOfficeBoy.officeboyid,
+            UpcommingList: createdUpcomming,
           });
       } else {
         res.status(403).json({
