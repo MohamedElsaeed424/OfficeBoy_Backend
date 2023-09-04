@@ -36,6 +36,6 @@ router.post(
 );
 
 // used in signup
-router.get("/get-status", isAuth, statusController.getAllStatus);
+router.get("/get-status", statusController.getAllStatus);
 
 module.exports = router;

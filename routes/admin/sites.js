@@ -114,14 +114,14 @@ router.post(
   sitesController.addSiteData
 );
 
-router.get("/site-data", isAuth, sitesController.getSiteData);
+router.get("/site-data", sitesController.getSiteData);
 
-router.get("/building-data", isAuth, sitesController.getBuildingData);
+router.get("/building-data", sitesController.getBuildingData);
 
-router.get("/office-data", isAuth, sitesController.getOfficeData);
+router.get("/office-data", sitesController.getOfficeData);
 
-router.get("/department-data", isAuth, sitesController.getDepartmentData);
+router.get("/department-data", sitesController.getDepartmentData);
 
-router.get("/room-data", isAuth, sitesController.getRoomData);
+router.get("/room-data", sitesController.getRoomData);
 
 module.exports = router;

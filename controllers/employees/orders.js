@@ -309,7 +309,7 @@ exports.reOrder = async (req, res, next) => {
       },
     });
     console.log(requestedOfficeBoy, "Office Boy Selected");
-    let isReqOfficeBoyExist = availableOfficeBoys.includes(requestedOfficeBoy);
+    let isReqOfficeBoyExist = availableOfficeBoys.finde(requestedOfficeBoy);
     console.log(isReqOfficeBoyExist);
     if (isReqOfficeBoyExist) {
       res.status(403).json({

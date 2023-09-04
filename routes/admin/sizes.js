@@ -37,6 +37,6 @@ router.post(
 );
 
 // used in signup
-router.get("/get-sizes", isAuth, sizesController.getSizes);
+router.get("/get-sizes", sizesController.getSizes);
 
 module.exports = router;

@@ -37,6 +37,6 @@ router.post(
 );
 
 // used in signup
-router.get("/get-roles", isAuth, rolesController.getRoles);
+router.get("/get-roles", rolesController.getRoles);
 
 module.exports = router;
