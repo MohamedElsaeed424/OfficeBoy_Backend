@@ -7,18 +7,234 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model UsersTBL {
-    userid    Int    @id @default(autoincrement())
-    firstname String
-    lastname  String
-    email     String @unique
-    role      String
-    password  String
+//-----------------------------------------------------------------------------
+model TokensTBL {
+    tokenid      Int      @id @default(autoincrement())
+    refreshtoken String
+    userid       Int
+    reftoken     UsersTBL @relation(fields: [userid], references: [userid])
 }
 
 model BlacklistedToken {
-    id       Int      @id @default(autoincrement())
-    token    String   @unique
-    createdAt DateTime @default(now())
+    id        Int      @id @default(autoincrement())
+    token     String   @unique
+    createdat DateTime @default(now())
 }
 
+//----------------------------Users-----------------------------------------------------
+model UsersTBL {
+    userid    Int            @id @default(autoincrement())
+    firstname String
+    lastname  String
+    email     String         @unique
+    password  String
+    // rolename      String
+    roleid    Int
+    roleref   RoleTBL        @relation(fields: [roleid], references: [roleid])
+    Employee  EmployeeTBL[]
+    Items     ItemsTBL[] // One-to-many relationship with ItemsTBL
+    Tokens    TokensTBL[]
+    Officeboy OfficeBoyTBL[]
+}
+
+model EmployeeTBL {
+    empid         Int           @id @unique @default(autoincrement())
+    emp           UsersTBL      @relation(fields: [empid], references: [userid])
+    roomid        Int
+    romid         RoomTBL       @relation(fields: [roomid], references: [roomid])
+    officeid      Int
+    offid         OfficeTBL     @relation(fields: [officeid], references: [officeid])
+    siteid        Int
+    sitid         SiteTBL       @relation(fields: [siteid], references: [siteid])
+    buildingid    Int
+    bulidingref   BuildingTBL   @relation(fields: [buildingid], references: [buildingid])
+    departmentid  Int
+    departmentref DepartmentTBL @relation(fields: [departmentid], references: [departmentid])
+    Cart          CartTBL[]
+    // cartid   Int
+    // carttid  CartTBL   @relation(fields: [cartid], references: [cartid])
+    OrdersTBL     OrdersTBL[]
+}
+
+model OfficeBoyTBL {
+    officeboyid Int          @id @unique @default(autoincrement())
+    officeboy   UsersTBL     @relation(fields: [officeboyid], references: [userid])
+    officeid    Int
+    offid       OfficeTBL    @relation(fields: [officeid], references: [officeid])
+    siteid      Int
+    siteref     SiteTBL      @relation(fields: [siteid], references: [siteid])
+    UpcomingTBL UpcomingTBL?
+}
+
+model RoleTBL {
+    roleid   Int        @id @unique @default(autoincrement())
+    rolename String     @unique @default("Admin")
+    UsersTBL UsersTBL[]
+}
+
+//-------------------------------Locations--------------------------------------------------
+model SiteTBL {
+    siteid    Int            @id @unique @default(autoincrement())
+    sitename  String         @unique
+    Employee  EmployeeTBL[]
+    Building  BuildingTBL[]
+    Officeboy OfficeBoyTBL[]
+}
+
+model BuildingTBL {
+    buildingid   Int             @id @unique @default(autoincrement())
+    buildingname String          @unique
+    siteid       Int
+    siteref      SiteTBL         @relation(fields: [siteid], references: [siteid])
+    Department   DepartmentTBL[]
+    Office       OfficeTBL[]
+    Employee     EmployeeTBL[]
+}
+
+model OfficeTBL {
+    officeid    Int            @id @unique @default(autoincrement())
+    officeno    Int            @unique
+    Employee    EmployeeTBL[]
+    Officeboy   OfficeBoyTBL[]
+    buildingid  Int
+    bulidingref BuildingTBL    @relation(fields: [buildingid], references: [buildingid])
+    Room        RoomTBL[]
+}
+
+model DepartmentTBL {
+    departmentid   Int           @id @unique @default(autoincrement())
+    departmentname String        @unique
+    buildingid     Int
+    Room           RoomTBL[]
+    Employee       EmployeeTBL[]
+    bulidingref    BuildingTBL   @relation(fields: [buildingid], references: [buildingid])
+}
+
+model RoomTBL {
+    roomid       Int           @id @unique @default(autoincrement())
+    roomno       Int           @unique
+    roomname     String        @unique
+    officeid     Int
+    officeref    OfficeTBL     @relation(fields: [officeid], references: [officeid])
+    departmentid Int
+    roomdepref   DepartmentTBL @relation(fields: [departmentid], references: [departmentid])
+    Employee     EmployeeTBL[]
+}
+
+//---------------------------------Items------------------------------------------------
+
+model CategoriesTbl {
+    categoryid   Int        @id @unique @default(autoincrement())
+    categoryname String     @unique //
+    Item         ItemsTBL[] // One-to-many relationship with ItemsTBL
+}
+
+model ItemsTBL {
+    userid           Int // Foreign key referencing UsersTBL
+    itemid           Int            @id @unique @default(autoincrement())
+    creator          UsersTBL       @relation(fields: [userid], references: [userid]) // Many-to-one relationship with UsersTBL
+    categoryid       Int // Foreign key referencing CategoriesTbl
+    catid            CategoriesTbl  @relation(fields: [categoryid], references: [categoryid]) // Many-to-one relationship with CategoriesTbl
+    itemname         String         @unique //
+    itemimagurl      String
+    itemidescription String
+    CartItems        CartItemsTBL[]
+}
+
+//---------------------------------Items ------------------------------------------------
+model UpcomingTBL {
+    upcomingid    Int                @id @unique @default(autoincrement())
+    officeboyid   Int                @unique
+    officeboyref  OfficeBoyTBL       @relation(fields: [officeboyid], references: [officeboyid])
+    upcomingItems UpcomingItemsTBL[]
+}
+
+model UpcomingItemsTBL {
+    upcomingitemid    Int                    @id @unique @default(autoincrement())
+    empname           String
+    empoffice         Int
+    emproomnum        Int
+    emproomname       String
+    statusid          Int                    @default(3)
+    statusref         StatusTBL              @relation(fields: [statusid], references: [statusid])
+    upcomingid        Int
+    upcomingref       UpcomingTBL            @relation(fields: [upcomingid], references: [upcomingid])
+    UpcomingItemsData UpcomingItemsDataTBL[]
+}
+
+model UpcomingItemsDataTBL {
+    upcomingItemsDataid Int               @id @unique @default(autoincrement())
+    itemname            String
+    itemquantity        Int
+    upcomingitemid      Int
+    itemsize            String
+    UpcomingItemsref    UpcomingItemsTBL? @relation(fields: [upcomingitemid], references: [upcomingitemid])
+}
+
+model OrdersTBL {
+    orderid    Int             @id @unique @default(autoincrement())
+    empid      Int
+    empref     EmployeeTBL     @relation(fields: [empid], references: [empid])
+    orderItems OrderItemsTBL[]
+}
+
+model OrderItemsTBL {
+    orderitemid  Int       @id @unique @default(autoincrement())
+    itemname     String
+    itemquantity Int
+    sizeid       Int
+    sizeref      SizeTBL   @relation(fields: [sizeid], references: [sizeid])
+    statusid     Int       @default(3)
+    statusref    StatusTBL @relation(fields: [statusid], references: [statusid])
+    orderid      Int
+    ordersid     OrdersTBL @relation(fields: [orderid], references: [orderid])
+}
+
+model CartTBL {
+    cartid     Int            @id @unique @default(autoincrement())
+    empid      Int
+    employeeid EmployeeTBL    @relation(fields: [empid], references: [empid])
+    CartItems  CartItemsTBL[]
+}
+
+model CartItemsTBL {
+    cartitemid Int      @id @unique @default(autoincrement())
+    quanity    Int
+    cartid     Int
+    // itemsize   String   @unique
+    notes      String?
+    carttid    CartTBL? @relation(fields: [cartid], references: [cartid])
+    itemid     Int // Foreign key referencing CategoriesTbl
+    itemids    ItemsTBL @relation(fields: [itemid], references: [itemid])
+    sizeid     Int
+    sizeref    SizeTBL  @relation(fields: [sizeid], references: [sizeid])
+}
+
+model SizeTBL {
+    sizeid        Int             @id @unique @default(autoincrement())
+    sizename      String          @unique
+    CartItems     CartItemsTBL[]
+    OrderItemsTBL OrderItemsTBL[]
+}
+
+//-----------------------------Status--------------------------------
+model StatusTBL {
+    statusid      Int                @id @unique @default(autoincrement())
+    status        String             @unique
+    OrderItemsTBL OrderItemsTBL[]
+    UpcomingTBL   UpcomingItemsTBL[]
+}
+
+//---------------------------------domain------------------------------------------------
+
+model DomainsTBL {
+    domainid Int    @id @unique @default(autoincrement())
+    domain   String @unique
+}
+
+//commands
+//------------
+// npm run db:studio  
+// npx prisma genarate
+// npx prisma migrate dev --name init  --create-only => gererate a version of prisma table inside our db  ,geneate prise migration inside out tables
+// npx prisma migrate deploy   => deploy ur actual model user

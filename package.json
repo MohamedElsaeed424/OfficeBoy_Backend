@@ -5,21 +5,38 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon app.js"
+    "start": "nodemon app.js",
+    "db:studio": "prisma studio",
+    "db:push": "prisma db push",
+    "devStart": "nodemon jwt-passport.js",
+    "devStartAuth": "nodemon refresh-Tokens.js"
   },
   "author": "M_R",
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^5.0.0",
+    "@sendgrid/mail": "^7.7.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "express-validator": "^7.0.1",
     "jsonwebtoken": "^9.0.1",
-    "nodemon": "^3.0.1",
+    "markdown-it": "^13.0.1",
+    "motor": "^0.1.4",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.4",
+    "nodemailer-sendgrid-transport": "^0.2.0",
+    "passport": "^0.6.0",
+    "passport-jwt": "^4.0.1",
+    "passport-local": "^1.0.0",
     "path": "^0.12.7",
     "pg": "^8.11.1",
-    "prisma": "^5.0.0"
+    "prisma": "^5.0.0",
+    "url": "^0.11.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
   }
 }
