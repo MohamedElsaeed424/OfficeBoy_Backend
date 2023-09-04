@@ -97,6 +97,7 @@ exports.addItemsToCart = async (req, res, next) => {
       error.data = errors.array();
       throw error;
     }
+
     //Find the user by userid
     const user = await prisma.EmployeeTBL.findUnique({
       where: {
