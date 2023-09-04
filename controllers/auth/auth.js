@@ -30,28 +30,28 @@ const catchAsync = (fn) => (req, res, next) => {
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
-  const firstname = req.body.firstname;
-  const lastname = req.body.lastname;
-  const email = req.body.email;
-  // const roleName = req.body.role;
-  const roleId = req.body.roleId;
-  const password = req.body.password;
-  const siteId = req.body.siteId;
-  const buildingId = req.body.buildingId;
-  const officeId = req.body.officeId;
-  const departmentId = req.body.departmentId;
-  const roomId = req.body.roomId;
-  console.log(siteId);
-  //---------------------------Validations--------------------------
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const error = new Error("Please Try again , Validation Failed");
-    error.statusCode = 422;
-    error.data = errors.array();
-    throw error;
-  }
-  //-------------------------Hashing The Password for security------------------
   try {
+    const firstname = req.body.firstname;
+    const lastname = req.body.lastname;
+    const email = req.body.email;
+    // const roleName = req.body.role;
+    const roleId = req.body.roleId;
+    const password = req.body.password;
+    const siteId = req.body.siteId;
+    const buildingId = req.body.buildingId;
+    const officeId = req.body.officeId;
+    const departmentId = req.body.departmentId;
+    const roomId = req.body.roomId;
+    //---------------------------Validations--------------------------
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const error = new Error("Please Try again , Validation Failed");
+      error.statusCode = 422;
+      error.data = errors.array();
+      throw error;
+    }
+    //-------------------------Hashing The Password for security------------------
+
     const hashedPassword = await bcrypt.hash(password, 12);
     const isThereAnyRols = await prisma.RoleTBL.findMany();
     if (isThereAnyRols.length == 0) {
@@ -310,7 +310,6 @@ exports.signup = catchAsync(async (req, res, next) => {
         throw error;
       }
     }
-
     // sgMail.send({
     //   to: email,
     //   from: "postman.mord@gmail.com",
@@ -331,7 +330,7 @@ exports.login = async (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
   console.log(req.userId);
-  if (req.userId !== undefined) {
+  if (req.userId) {
     res
       .status(403)
       .json({ message: "You can not login There is user already Exsist" });
@@ -418,7 +417,7 @@ function generateAccessToken(user) {
   return jwt.sign(
     { email: user.email, userId: user.userid },
     "MY_ACCESS_SECRET_TOKEN_GENERATED",
-    { expiresIn: "4h" }
+    { expiresIn: "3d" }
   );
 }
 exports.logout = async (req, res, next) => {
@@ -435,7 +434,6 @@ exports.logout = async (req, res, next) => {
       throw error;
     }
     res.status(202).json({ message: "Token deleted" });
-    ``;
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;

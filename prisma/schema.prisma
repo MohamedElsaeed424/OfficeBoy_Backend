@@ -23,18 +23,19 @@ model BlacklistedToken {
 
 //----------------------------Users-----------------------------------------------------
 model UsersTBL {
-    userid    Int            @id @default(autoincrement())
-    firstname String
-    lastname  String
-    email     String         @unique
-    password  String
+    userid        Int                @id @default(autoincrement())
+    firstname     String
+    lastname      String
+    email         String             @unique
+    password      String
     // rolename      String
-    roleid    Int
-    roleref   RoleTBL        @relation(fields: [roleid], references: [roleid])
-    Employee  EmployeeTBL[]
-    Items     ItemsTBL[] // One-to-many relationship with ItemsTBL
-    Tokens    TokensTBL[]
-    Officeboy OfficeBoyTBL[]
+    roleid        Int
+    roleref       RoleTBL            @relation(fields: [roleid], references: [roleid])
+    Employee      EmployeeTBL[]
+    Items         ItemsTBL[] // One-to-many relationship with ItemsTBL
+    Tokens        TokensTBL[]
+    Officeboy     OfficeBoyTBL[]
+    Notifications NotificationsTBL[]
 }
 
 model EmployeeTBL {
@@ -155,6 +156,8 @@ model UpcomingItemsTBL {
     empoffice         Int
     emproomnum        Int
     emproomname       String
+    orderitemid       Int                    @unique
+    orderitemref      OrderItemsTBL          @relation(fields: [orderitemid], references: [orderitemid])
     statusid          Int                    @default(3)
     statusref         StatusTBL              @relation(fields: [statusid], references: [statusid])
     upcomingid        Int
@@ -166,8 +169,8 @@ model UpcomingItemsDataTBL {
     upcomingItemsDataid Int               @id @unique @default(autoincrement())
     itemname            String
     itemquantity        Int
-    upcomingitemid      Int
     itemsize            String
+    upcomingitemid      Int
     UpcomingItemsref    UpcomingItemsTBL? @relation(fields: [upcomingitemid], references: [upcomingitemid])
 }
 
@@ -179,15 +182,23 @@ model OrdersTBL {
 }
 
 model OrderItemsTBL {
-    orderitemid  Int       @id @unique @default(autoincrement())
-    itemname     String
-    itemquantity Int
-    sizeid       Int
-    sizeref      SizeTBL   @relation(fields: [sizeid], references: [sizeid])
-    statusid     Int       @default(3)
-    statusref    StatusTBL @relation(fields: [statusid], references: [statusid])
-    orderid      Int
-    ordersid     OrdersTBL @relation(fields: [orderid], references: [orderid])
+    orderitemid      Int                 @id @unique @default(autoincrement())
+    statusid         Int                 @default(3)
+    statusref        StatusTBL           @relation(fields: [statusid], references: [statusid])
+    orderid          Int
+    ordersid         OrdersTBL           @relation(fields: [orderid], references: [orderid])
+    UpcomingItemsTBL UpcomingItemsTBL?
+    OrderItemsData   OrderItemsDataTBL[]
+}
+
+model OrderItemsDataTBL {
+    orderitemsdataid Int           @id @unique @default(autoincrement())
+    itemname         String
+    itemquantity     Int
+    sizeid           Int
+    sizeref          SizeTBL       @relation(fields: [sizeid], references: [sizeid])
+    orderitemid      Int
+    orderItemsref    OrderItemsTBL @relation(fields: [orderitemid], references: [orderitemid])
 }
 
 model CartTBL {
@@ -211,10 +222,10 @@ model CartItemsTBL {
 }
 
 model SizeTBL {
-    sizeid        Int             @id @unique @default(autoincrement())
-    sizename      String          @unique
-    CartItems     CartItemsTBL[]
-    OrderItemsTBL OrderItemsTBL[]
+    sizeid            Int                 @id @unique @default(autoincrement())
+    sizename          String              @unique
+    CartItems         CartItemsTBL[]
+    OrderItemsDataTBL OrderItemsDataTBL[]
 }
 
 //-----------------------------Status--------------------------------
@@ -230,6 +241,15 @@ model StatusTBL {
 model DomainsTBL {
     domainid Int    @id @unique @default(autoincrement())
     domain   String @unique
+}
+
+//---------------------------------Notifications----------------------
+model NotificationsTBL {
+    notificationid          Int      @id @unique @default(autoincrement())
+    notificationtitle       String
+    notificationdescription String
+    userid                  Int
+    UsersTBL                UsersTBL @relation(fields: [userid], references: [userid])
 }
 
 //commands

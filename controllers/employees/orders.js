@@ -44,9 +44,11 @@ exports.createOrder = async (req, res, next) => {
       },
     });
     console.log(requestedOfficeBoy, "Office Boy Selected");
-    let isReqOfficeBoyExist = availableOfficeBoys.includes(requestedOfficeBoy);
+    const isReqOfficeBoyExist = availableOfficeBoys.find((officeBoy) => {
+      return officeBoy.officeboyid === requestedOfficeBoy.officeboyid;
+    });
     console.log(isReqOfficeBoyExist);
-    if (isReqOfficeBoyExist) {
+    if (!isReqOfficeBoyExist) {
       res.status(403).json({
         message:
           "Sorry, You can not select this office boy , he OR she maybe not in your site",
@@ -94,9 +96,18 @@ exports.createOrder = async (req, res, next) => {
       },
     });
     let orderItemsContainer = [];
+    const orderItem = await prisma.OrderItemsTBL.create({
+      data: {
+        ordersid: {
+          connect: {
+            orderid: order.orderid,
+          },
+        },
+      },
+    });
     for (let i = 0; i < cartItems.length; i++) {
       console.log("orderCartItemi: ", cartItems[i]);
-      const orderItem = await prisma.OrderItemsTBL.create({
+      const orderItemData = await prisma.OrderItemsDataTBL.create({
         data: {
           itemname: cartItems[i].itemids.itemname,
           itemquantity: cartItems[i].quanity,
@@ -105,9 +116,9 @@ exports.createOrder = async (req, res, next) => {
               sizeid: cartItems[i].sizeref.sizeid,
             },
           },
-          ordersid: {
+          orderItemsref: {
             connect: {
-              orderid: order.orderid,
+              orderitemid: orderItem.orderitemid,
             },
           },
         },
@@ -118,7 +129,7 @@ exports.createOrder = async (req, res, next) => {
           cartitemid: cartItems[i].cartitemid,
         },
       });
-      orderItemsContainer.push(orderItem);
+      orderItemsContainer.push(orderItemData);
     }
     //send items to requested office boy--------------------------------------
     const actualEmployee = await prisma.EmployeeTBL.findUnique({
@@ -146,6 +157,11 @@ exports.createOrder = async (req, res, next) => {
         empoffice: actualEmployee.offid.officeno,
         emproomnum: actualEmployee.romid.roomno,
         emproomname: actualEmployee.romid.roomname,
+        orderitemref: {
+          connect: {
+            orderitemid: orderItem.orderitemid,
+          },
+        },
         upcomingref: {
           connect: {
             upcomingid: createdUpcoming.upcomingid,
@@ -154,9 +170,9 @@ exports.createOrder = async (req, res, next) => {
       },
     });
     for (let i = 0; i < orderItemsContainer.length; i++) {
-      const orderItemForSize = await prisma.OrderItemsTBL.findUnique({
+      const orderItemForSize = await prisma.OrderItemsDataTBL.findUnique({
         where: {
-          orderitemid: orderItemsContainer[i].orderitemid,
+          orderitemsdataid: orderItemsContainer[i].orderitemsdataid,
         },
         include: {
           sizeref: true,
@@ -183,7 +199,8 @@ exports.createOrder = async (req, res, next) => {
     });
     res.status(202).json({
       message: "Order created successfully",
-      orderNom: order.id,
+      orderNom: order.orderid,
+      order: orderItem,
       orderItems: orderItemsContainer,
     });
   } catch (err) {
@@ -309,9 +326,11 @@ exports.reOrder = async (req, res, next) => {
       },
     });
     console.log(requestedOfficeBoy, "Office Boy Selected");
-    let isReqOfficeBoyExist = availableOfficeBoys.finde(requestedOfficeBoy);
+    const isReqOfficeBoyExist = availableOfficeBoys.find((officeBoy) => {
+      return officeBoy.officeboyid === requestedOfficeBoy.officeboyid;
+    });
     console.log(isReqOfficeBoyExist);
-    if (isReqOfficeBoyExist) {
+    if (!isReqOfficeBoyExist) {
       res.status(403).json({
         message:
           "Sorry, You can not select this office boy , he OR she maybe not in your site",
@@ -329,6 +348,12 @@ exports.reOrder = async (req, res, next) => {
       },
       include: {
         orderItems: true,
+      },
+    });
+    // console.log("idssss", searchedOrder.orderItems[0].orderitemid);
+    const searchedOrderItemsData = await prisma.OrderItemsDataTBL.findMany({
+      where: {
+        orderitemid: searchedOrder.orderItems[0].orderitemid,
       },
     });
     if (!searchedOrder) {
@@ -350,27 +375,37 @@ exports.reOrder = async (req, res, next) => {
           },
         },
       });
-
       let orderItemsContainer = [];
-      for (let i = 0; i < searchedOrder.orderItems.length; i++) {
-        console.log("orderCartItemi: ", searchedOrder.orderItems[i]);
-        const orderItem = await prisma.OrderItemsTBL.create({
+      const orderItem = await prisma.OrderItemsTBL.create({
+        data: {
+          ordersid: {
+            connect: {
+              orderid: order.orderid,
+            },
+          },
+        },
+      });
+      // console.log(searchedOrderItemsData.length);
+
+      for (let i = 0; i < searchedOrderItemsData.length; i++) {
+        // console.log("orderCartItemi: ", searchedOrderItemsData[i]);
+        const orderItemData = await prisma.OrderItemsDataTBL.create({
           data: {
-            itemname: searchedOrder.orderItems[i].itemname,
-            itemquantity: searchedOrder.orderItems[i].itemquantity,
+            itemname: searchedOrderItemsData[i].itemname,
+            itemquantity: searchedOrderItemsData[i].itemquantity,
             sizeref: {
               connect: {
-                sizeid: searchedOrder.orderItems[i].sizeid,
+                sizeid: searchedOrderItemsData[i].sizeid,
               },
             },
-            ordersid: {
+            orderItemsref: {
               connect: {
-                orderid: order.orderid,
+                orderitemid: orderItem.orderitemid,
               },
             },
           },
         });
-        orderItemsContainer.push(orderItem);
+        orderItemsContainer.push(orderItemData);
       }
 
       //send items to requested office boy--------------------------------------
@@ -399,6 +434,11 @@ exports.reOrder = async (req, res, next) => {
           empoffice: actualEmployee.offid.officeno,
           emproomnum: actualEmployee.romid.roomno,
           emproomname: actualEmployee.romid.roomname,
+          orderitemref: {
+            connect: {
+              orderitemid: orderItem.orderitemid,
+            },
+          },
           upcomingref: {
             connect: {
               upcomingid: createdUpcoming.upcomingid,
@@ -407,9 +447,9 @@ exports.reOrder = async (req, res, next) => {
         },
       });
       for (let i = 0; i < orderItemsContainer.length; i++) {
-        const orderItemForSize = await prisma.OrderItemsTBL.findUnique({
+        const orderItemForSize = await prisma.OrderItemsDataTBL.findUnique({
           where: {
-            orderitemid: orderItemsContainer[i].orderitemid,
+            orderitemsdataid: orderItemsContainer[i].orderitemsdataid,
           },
           include: {
             sizeref: true,
@@ -430,7 +470,8 @@ exports.reOrder = async (req, res, next) => {
       }
       res.status(202).json({
         message: "Reorder created successfully",
-        orderNom: order.id,
+        orderNom: order.orderid,
+        order: orderItem,
         orderItems: orderItemsContainer,
       });
     }
