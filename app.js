@@ -3,7 +3,9 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const path = require("path");
 const multer = require("multer");
-
+const { initializeApp, applicationDefault } = require("firebase-admin/app");
+const { getMessaging } = require("firebase-admin/messaging");
+// const serviceAccount = require("./officeboy-397908-firebase-adminsdk-ncjzz-51769ef0f5.json");
 const authRoutes = require("./routes/auth/auth");
 const orderRoutes = require("./routes/employees/orders");
 const adminRoutes = require("./routes/admin/admin");
@@ -15,6 +17,7 @@ const sizesRoutes = require("./routes/admin/sizes");
 const domainsRoutes = require("./routes/admin/domains");
 const statusRoutes = require("./routes/admin/status");
 const upcomingRoutes = require("./routes/officeBoys/upcomingItems");
+const finishingRoutes = require("./routes/officeBoys/finishingItems");
 const shopRoutes = require("./routes/shop/shop");
 const { PrismaClient } = require("@prisma/client");
 const isAuth = require("./middleware/is-auth");
@@ -62,18 +65,12 @@ app.use((req, res, next) => {
 });
 
 // check for json data only
-app.use((err, req, res, next) => {
-  if (
-    (err instanceof SyntaxError && err.status === 400 && "body" in err) ||
-    !req.body
-  ) {
-    res
-      .status(400)
-      .json({ error: "Invalid JSON data. Check your body entries" });
-  } else {
-    next();
-  }
+
+initializeApp({
+  Credential: applicationDefault(),
+  projectId: "potion-for-creator",
 });
+
 app.use("/admin", adminRoutes);
 app.use("/admin/categories", categoriesRoutes);
 app.use("/admin/sites", sitesRoutes);
@@ -82,11 +79,25 @@ app.use("/admin/sizes", sizesRoutes);
 app.use("/admin/domains", domainsRoutes);
 app.use("/admin/status", statusRoutes);
 app.use("/officeBoy/upcomingData", upcomingRoutes);
+app.use("/officeBoy/finishingData", finishingRoutes);
 app.use("/order", orderRoutes);
 app.use("/shop", shopRoutes);
 app.use("/auth", authRoutes);
 app.use("/cart", cartRoutes);
 
+app.use((req, res) => {
+  res.status(404).json({ message: "this page dosenot exsist" });
+});
+app.use((err, req, res, next) => {
+  if (
+    (err instanceof SyntaxError && err.status === 400 && "body" in err) ||
+    !req.body
+  ) {
+    res.status(400).json({ error: "No request body sent" });
+  } else {
+    next();
+  }
+});
 //--------------------------------Gnenral Error handling ----------------------------
 
 app.use((error, req, res, next) => {

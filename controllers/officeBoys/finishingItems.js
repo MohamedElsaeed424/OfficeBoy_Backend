@@ -1,0 +1,60 @@
+const { PrismaClient } = require("@prisma/client");
+const { use } = require("passport");
+
+const { validationResult } = require("express-validator");
+
+const prisma = new PrismaClient();
+
+exports.getFinishingItems = async (req, res, next) => {
+  try {
+    const user = await prisma.UsersTBL.findUnique({
+      where: {
+        userid: req.userId,
+      },
+      include: {
+        roleref: true,
+      },
+    });
+    if (user.roleref.rolename == "office Boy") {
+      console.log(user);
+      const finishingData = await prisma.FinishingTBL.findUnique({
+        where: {
+          officeboyid: user.userid,
+        },
+        include: {
+          FinishingItems: true,
+        },
+      });
+      console.log(finishingData.FinishingItems);
+      if (finishingData.FinishingItems.length === 0) {
+        res.status(404).json({ message: "No orders Finished yet" });
+        const error = new Error("No orders Finished yet");
+        error.statusCode = 404;
+        throw error;
+      } else {
+        const finishingAllItems = await prisma.FinishingItemsTBL.findMany({
+          include: {
+            FinishingItemsData: true,
+          },
+        });
+        res.status(200).json({ FinishingItems: finishingAllItems });
+      }
+    } else {
+      res.status(403).json({
+        message:
+          "You Are not autherized to get these data , you are not Office Boy",
+      });
+
+      const error = new Error(
+        "You Are not autherized to get these data , you are not Office Boy"
+      );
+      error.statusCode = 403;
+      throw error;
+    }
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};

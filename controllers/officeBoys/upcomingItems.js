@@ -26,13 +26,16 @@ exports.getUpcomingItems = async (req, res, next) => {
         },
       });
       console.log(upcomingData.upcomingItems);
-      if (!upcomingData.upcomingItems) {
+      if (upcomingData.upcomingItems.length === 0) {
         res.status(404).json({ message: "No orders Ordered yet" });
         const error = new Error("No orders Ordered yet");
         error.statusCode = 404;
         throw error;
       } else {
         const upcomingAllItems = await prisma.UpcomingItemsTBL.findMany({
+          where: {
+            upcomingid: upcomingData.upcomingid,
+          },
           include: {
             UpcomingItemsData: true,
             orderitemref: true,
@@ -83,6 +86,7 @@ exports.updataUpcomingItemStatus = async (req, res, next) => {
     if (user.roleref.rolename == "office Boy") {
       const upcomingItemId = req.params.upcomingItemId;
       const statusId = req.body.statusId;
+
       const statusCheck = await prisma.StatusTBL.findUnique({
         where: {
           statusid: parseInt(statusId),
@@ -95,18 +99,98 @@ exports.updataUpcomingItemStatus = async (req, res, next) => {
         error.data = errors.array();
         throw error;
       }
-      const updatedUpcomingItem = await prisma.UpcomingItemsTBL.update({
+      const upcomingItemCheck = await prisma.UpcomingItemsTBL.findUnique({
         where: {
           upcomingitemid: parseInt(upcomingItemId),
         },
-        data: {
-          statusref: {
-            connect: {
-              statusid: parseInt(statusId),
+      });
+      if (!upcomingItemCheck) {
+        res.status(403).json({ message: "This Item Dose't Exist" });
+        const error = new Error("This Item Dose't Exist");
+        error.statusCode = 403;
+        error.data = errors.array();
+        throw error;
+      }
+      let updatedUpcomingItem;
+      let createdFinishingItem;
+      if (statusId === 5) {
+        // finished
+        updatedUpcomingItem = await prisma.UpcomingItemsTBL.findUnique({
+          where: {
+            upcomingitemid: parseInt(upcomingItemId),
+          },
+          include: {
+            UpcomingItemsData: true,
+          },
+        });
+        // console.log(updatedUpcomingItem.UpcomingItemsData);
+        const alldeletedUpcomingItemData =
+          updatedUpcomingItem.UpcomingItemsData;
+        console.log(alldeletedUpcomingItemData);
+        for (let i = 0; i < updatedUpcomingItem.UpcomingItemsData.length; i++) {
+          await prisma.UpcomingItemsDataTBL.delete({
+            where: {
+              upcomingItemsDataid:
+                updatedUpcomingItem.UpcomingItemsData[i].upcomingItemsDataid,
+            },
+          });
+        }
+
+        await prisma.UpcomingItemsTBL.delete({
+          where: {
+            upcomingitemid: updatedUpcomingItem.upcomingitemid,
+          },
+        });
+
+        console.log(user.userid);
+        const createdFinishing = await prisma.FinishingTBL.findUnique({
+          where: {
+            officeboyid: user.userid,
+          },
+        });
+        console.log(createdFinishing);
+        createdFinishingItem = await prisma.FinishingItemsTBL.create({
+          data: {
+            empname: updatedUpcomingItem.empname,
+            empoffice: updatedUpcomingItem.empoffice,
+            emproomnum: updatedUpcomingItem.emproomnum,
+            emproomname: updatedUpcomingItem.emproomname,
+            finishingref: {
+              connect: {
+                finishingid: createdFinishing.finishingid,
+              },
             },
           },
-        },
-      });
+        });
+        for (let i = 0; i < alldeletedUpcomingItemData.length; i++) {
+          const FinishedItemData = await prisma.FinishingItemsDataTBL.create({
+            data: {
+              itemname: alldeletedUpcomingItemData[i].itemname,
+              itemquantity: alldeletedUpcomingItemData[i].itemquantity,
+              itemsize: alldeletedUpcomingItemData[i].itemsize,
+              FinishingItemsref: {
+                connect: {
+                  finishingitemid: createdFinishingItem.finishingitemid,
+                },
+              },
+            },
+          });
+        }
+      } else {
+        updatedUpcomingItem = await prisma.UpcomingItemsTBL.update({
+          where: {
+            upcomingitemid: parseInt(upcomingItemId),
+          },
+          data: {
+            statusref: {
+              connect: {
+                statusid: parseInt(statusId),
+              },
+            },
+          },
+        });
+      }
+
       const updateOrderItem = await prisma.orderItemsTBL.update({
         where: {
           orderitemid: updatedUpcomingItem.orderitemid,
@@ -120,15 +204,14 @@ exports.updataUpcomingItemStatus = async (req, res, next) => {
         },
       });
       //   console.log(updatedUpcomingItem.orderitemid);
-      res
-        .status(201)
-        // connect with Front end...
-        .json({
-          message: "Status Updated Successfully",
-          choosenStatus: statusId,
-          updatedUpcomingItem: updatedUpcomingItem,
-          updateOrderItem: updateOrderItem,
-        });
+      console.log(createdFinishingItem);
+      res.status(201).json({
+        message: "Status Updated Successfully",
+        choosenStatus: statusId,
+        updatedUpcomingItem: updatedUpcomingItem,
+        updateOrderItem: updateOrderItem,
+        finishingItems: createdFinishingItem,
+      });
     } else {
       res.status(403).json({
         message:

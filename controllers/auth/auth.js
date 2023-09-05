@@ -290,6 +290,15 @@ exports.signup = catchAsync(async (req, res, next) => {
             },
           },
         });
+        const createdFinished = await prisma.FinishingTBL.create({
+          data: {
+            officeboyref: {
+              connect: {
+                officeboyid: newOfficeBoy.officeboyid,
+              },
+            },
+          },
+        });
         res
           .status(201)
           // connect with Front end...
@@ -297,6 +306,7 @@ exports.signup = catchAsync(async (req, res, next) => {
             message: "User Created Successfully",
             userId: newOfficeBoy.officeboyid,
             UpcommingList: createdUpcomming,
+            FinishingList: createdFinished,
           });
       } else {
         res.status(403).json({

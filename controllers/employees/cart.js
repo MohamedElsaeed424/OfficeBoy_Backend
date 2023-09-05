@@ -399,6 +399,15 @@ exports.deleteItemFromCart = async (req, res, next) => {
 
 exports.editSiteInCart = async (req, res, next) => {
   try {
+    //---------------------------Validations--------------------------
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const error = new Error("Please Try again , Validation Failed");
+      error.statusCode = 422;
+      error.data = errors.array();
+      throw error;
+    }
+
     const siteId = req.body.siteId;
     const buildingId = req.body.buildingId;
     const officeId = req.body.officeId;

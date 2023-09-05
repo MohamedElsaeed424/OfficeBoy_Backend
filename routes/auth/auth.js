@@ -7,6 +7,7 @@ const checkRequestBody = require("../../middleware/bodyDataChecker");
 const englishValidator = require("../../middleware/emails/englishValidator");
 
 const authController = require("../../controllers/auth/auth");
+const { isValidUrl } = require("../../middleware/isValidURL");
 
 const router = express.Router();
 const prisma = new PrismaClient();
