@@ -1,8 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const { use } = require("passport");
-
 const { validationResult } = require("express-validator");
-
+const notificationSender = require("../../util/sendingNotification");
 const prisma = new PrismaClient();
 
 exports.getUpcomingItems = async (req, res, next) => {
@@ -86,7 +85,7 @@ exports.updataUpcomingItemStatus = async (req, res, next) => {
     if (user.roleref.rolename == "office Boy") {
       const upcomingItemId = req.params.upcomingItemId;
       const statusId = req.body.statusId;
-
+      // const receivedToken = req.body.FCMToken;
       const statusCheck = await prisma.StatusTBL.findUnique({
         where: {
           statusid: parseInt(statusId),
@@ -113,7 +112,12 @@ exports.updataUpcomingItemStatus = async (req, res, next) => {
       }
       let updatedUpcomingItem;
       let createdFinishingItem;
-      if (statusId === 5) {
+      const requestedStatus = await prisma.StatusTBL.findUnique({
+        where: {
+          statusid: statusId,
+        },
+      });
+      if (requestedStatus.status === "Finished") {
         // finished
         updatedUpcomingItem = await prisma.UpcomingItemsTBL.findUnique({
           where: {
@@ -205,6 +209,11 @@ exports.updataUpcomingItemStatus = async (req, res, next) => {
       });
       //   console.log(updatedUpcomingItem.orderitemid);
       console.log(createdFinishingItem);
+      // notificationSender(
+      //   receivedToken,
+      //   "Order Status",
+      //   "Your Order is ${requestedStatus.status} "
+      // );
       res.status(201).json({
         message: "Status Updated Successfully",
         choosenStatus: statusId,

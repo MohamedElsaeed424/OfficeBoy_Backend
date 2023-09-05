@@ -101,11 +101,16 @@ app.use((err, req, res, next) => {
 //--------------------------------Gnenral Error handling ----------------------------
 
 app.use((error, req, res, next) => {
-  console.log(error);
-  const status = error.statusCode || 500;
-  const message = error.message;
-  const data = error.data;
-  res.status(status).json({ message: message, errors: data });
+  if (error.code === "P2002") {
+    console.error("Database connection error:", error.message);
+    res.status(503).json({ message: error.message });
+  } else {
+    console.log(error);
+    const status = error.statusCode || 500;
+    const message = error.message;
+    const data = error.data;
+    res.status(status).json({ message: message, errors: data });
+  }
 });
 
 app.listen(8080);

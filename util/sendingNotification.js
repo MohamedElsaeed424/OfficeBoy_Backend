@@ -2,8 +2,6 @@ const { initializeApp, applicationDefault } = require("firebase-admin/app");
 const { getMessaging } = require("firebase-admin/messaging");
 const sendNotification = async (receivedToken, title, body) => {
   try {
-    const receivedToken = req.body.fcmToken;
-
     const currentDate = new Date();
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth() + 1;
