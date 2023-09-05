@@ -25,19 +25,27 @@ exports.getFinishingItems = async (req, res, next) => {
           FinishingItems: true,
         },
       });
-      console.log(finishingData.FinishingItems);
+      // console.log(finishingData.FinishingItems);
       if (finishingData.FinishingItems.length === 0) {
         res.status(404).json({ message: "No orders Finished yet" });
         const error = new Error("No orders Finished yet");
         error.statusCode = 404;
         throw error;
       } else {
-        const finishingAllItems = await prisma.FinishingItemsTBL.findMany({
-          include: {
-            FinishingItemsData: true,
-          },
-        });
-        res.status(200).json({ FinishingItems: finishingAllItems });
+        let finishedItemsDataContainer = [];
+        for (let i = 0; i < finishingData.FinishingItems.length; i++) {
+          const finishingItem = await prisma.FinishingItemsTBL.findUnique({
+            where: {
+              finishingitemid: finishingData.FinishingItems[i].finishingitemid,
+            },
+            include: {
+              FinishingItemsData: true,
+            },
+          });
+          finishedItemsDataContainer.push(finishingItem);
+        }
+
+        res.status(200).json({ FinishingItems: finishedItemsDataContainer });
       }
     } else {
       res.status(403).json({

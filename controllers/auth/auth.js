@@ -30,30 +30,34 @@ const catchAsync = (fn) => (req, res, next) => {
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
+  const firstname = req.body.firstname;
+  const lastname = req.body.lastname;
+  const email = req.body.email;
+  // const roleName = req.body.role;
+  const roleId = req.body.roleId;
+  const password = req.body.password;
+  const siteId = req.body.siteId;
+  const buildingId = req.body.buildingId;
+  const officeId = req.body.officeId;
+  const departmentId = req.body.departmentId;
+  const roomId = req.body.roomId;
+
+  //---------------------------Validations--------------------------
   try {
-    const firstname = req.body.firstname;
-    const lastname = req.body.lastname;
-    const email = req.body.email;
-    // const roleName = req.body.role;
-    const roleId = req.body.roleId;
-    const password = req.body.password;
-    const siteId = req.body.siteId;
-    const buildingId = req.body.buildingId;
-    const officeId = req.body.officeId;
-    const departmentId = req.body.departmentId;
-    const roomId = req.body.roomId;
-    //---------------------------Validations--------------------------
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      // console.log(errors);
       const error = new Error("Please Try again , Validation Failed");
       error.statusCode = 422;
       error.data = errors.array();
       throw error;
     }
+
     //-------------------------Hashing The Password for security------------------
 
     const hashedPassword = await bcrypt.hash(password, 12);
     const isThereAnyRols = await prisma.RoleTBL.findMany();
+
     if (isThereAnyRols.length == 0) {
       const newUser = await prisma.UsersTBL.create({
         data: {
@@ -85,6 +89,7 @@ exports.signup = catchAsync(async (req, res, next) => {
         error.data = errors.array();
         throw error;
       }
+
       if (RoleCheck.rolename == "employee") {
         // Check if the data exisit or not
         const siteCheck = await prisma.SiteTBL.findUnique({
@@ -299,6 +304,7 @@ exports.signup = catchAsync(async (req, res, next) => {
             },
           },
         });
+
         res
           .status(201)
           // connect with Front end...
@@ -327,6 +333,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     //   html: emailDesignHtml,
     // });
   } catch (err) {
+    console.log(err);
     if (!err.statusCode) {
       err.statusCode = 500;
     }

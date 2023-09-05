@@ -84,7 +84,7 @@ router.put(
         } else {
           checkValue = false;
         }
-        console.log(checkValue);
+        // console.log(checkValue);
         if (checkValue == true) {
           return Promise.reject(
             "item name should contains only upper and lower cases characters."

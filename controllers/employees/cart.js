@@ -43,9 +43,9 @@ exports.getCartItems = async (req, res, next) => {
       },
       include: { CartItems: true, employeeid: true },
     });
-    if (!userCart) {
-      res.status(404).json({ message: "Sorry, No Items in cart to be shown" });
-      const error = new Error("Sorry, No Items in cart to be shown");
+    if (userCart.CartItems.length === 0) {
+      res.status(404).json({ message: "No Items in cart to be shown" });
+      const error = new Error("No Items in cart to be shown");
       error.statusCode = 404;
       throw error;
     }

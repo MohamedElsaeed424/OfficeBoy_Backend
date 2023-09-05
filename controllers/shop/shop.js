@@ -48,8 +48,8 @@ exports.getItem = async (req, res, next) => {
       },
     });
     if (!item) {
-      res.status(404).json({ message: "Sorry, No Item to be shown yet" });
-      const error = new Error("Sorry, No Item to be shown");
+      res.status(404).json({ message: "this item dosenot exsist" });
+      const error = new Error("this item dosenot exsist");
       error.statusCode = 404;
       throw error;
     }
@@ -72,8 +72,8 @@ exports.getNamedItem = async (req, res, next) => {
       },
     });
     if (!item) {
-      res.status(404).json({ message: "Sorry, No Item to be shown" });
-      const error = new Error("Sorry, No Item to be shown");
+      res.status(404).json({ message: "this item dosenot exsist" });
+      const error = new Error("this item dosenot exsist");
       error.statusCode = 404;
       throw error;
     }

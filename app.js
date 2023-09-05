@@ -48,6 +48,10 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
+app.use((req, res, next) => {
+  res.setHeader("Content-Type", "application/json");
+  next();
+});
 app.use(bodyParser.json({ type: "application/json" }));
 // app.use(bodyParser.json());
 app.use(
@@ -70,6 +74,16 @@ initializeApp({
   Credential: applicationDefault(),
   projectId: "potion-for-creator",
 });
+app.use((err, req, res, next) => {
+  if (
+    (err instanceof SyntaxError && err.status === 400 && "body" in err) ||
+    !req.body
+  ) {
+    res.status(400).json({ error: "Check your request body" });
+  } else {
+    next();
+  }
+});
 
 app.use("/admin", adminRoutes);
 app.use("/admin/categories", categoriesRoutes);
@@ -84,34 +98,18 @@ app.use("/order", orderRoutes);
 app.use("/shop", shopRoutes);
 app.use("/auth", authRoutes);
 app.use("/cart", cartRoutes);
-
 app.use((req, res) => {
   res.status(404).json({ message: "this page dosenot exsist" });
 });
-app.use((err, req, res, next) => {
-  if (
-    (err instanceof SyntaxError && err.status === 400 && "body" in err) ||
-    !req.body
-  ) {
-    res.status(400).json({ error: "No request body sent" });
-  } else {
-    next();
-  }
-});
-//--------------------------------Gnenral Error handling ----------------------------
-
 app.use((error, req, res, next) => {
-  if (error.code === "P2002") {
-    console.error("Database connection error:", error.message);
-    res.status(503).json({ message: error.message });
-  } else {
-    console.log(error);
-    const status = error.statusCode || 500;
-    const message = error.message;
-    const data = error.data;
-    res.status(status).json({ message: message, errors: data });
-  }
+  console.log(error);
+  const status = error.statusCode || 500;
+  const message = error.message;
+  const data = error.data;
+  res.status(status).json({ message: message, errors: data });
 });
+
+//--------------------------------Gnenral Error handling ----------------------------
 
 app.listen(8080);
 

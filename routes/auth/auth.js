@@ -80,7 +80,7 @@ router.post(
         } else {
           checkValue = false;
         }
-        console.log(checkValue);
+        // console.log(checkValue);
         if (checkValue == true) {
           return Promise.reject(
             "first name should contains only upper and lower cases characters."
@@ -101,7 +101,7 @@ router.post(
         } else {
           checkValue = false;
         }
-        console.log(checkValue);
+        // console.log(checkValue);
         if (checkValue == true) {
           return Promise.reject(
             "first name should contains only upper and lower cases characters."

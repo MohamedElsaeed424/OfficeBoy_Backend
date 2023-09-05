@@ -143,7 +143,7 @@ exports.deleteItem = async (req, res, next) => {
         },
       });
       if (!item) {
-        const error = new Error("Sorry, No Item to be Deleted");
+        const error = new Error("No Item to be Deleted");
         error.statusCode = 404;
         throw error;
       }

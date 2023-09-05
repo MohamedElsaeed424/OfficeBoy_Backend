@@ -66,37 +66,50 @@ exports.addSiteData = async (req, res, next) => {
         error.data = errors.array();
         throw error;
       }
-      if (buildingCheck) {
-        res.status(403).json({ message: "This Building already exist" });
-        const error = new Error("This Building already exist");
-        error.statusCode = 403;
-        error.data = errors.array();
-        throw error;
-      }
-      if (officeCheck) {
-        res.status(403).json({ message: "This Office already exist" });
-        const error = new Error("This Office already exist");
-        error.statusCode = 403;
-        error.data = errors.array();
-        throw error;
-      }
-      if (departmentCheck) {
-        res.status(403).json({ message: "This Department already exist" });
-        const error = new Error("This Department already exist");
-        error.statusCode = 403;
-        error.data = errors.array();
-        throw error;
-      }
-      if (roomCheck1) {
-        res.status(403).json({ message: "This Room Number  already exist" });
-        const error = new Error("This Room Number  already exist");
-        error.statusCode = 403;
-        error.data = errors.array();
-        throw error;
-      }
-      if (roomCheck2) {
-        res.status(403).json({ message: "This Room Name  already exist" });
-        const error = new Error("This Room Name  already exist");
+      // if (buildingCheck) {
+      //   res.status(403).json({ message: "This Building already exist" });
+      //   const error = new Error("This Building already exist");
+      //   error.statusCode = 403;
+      //   error.data = errors.array();
+      //   throw error;
+      // }
+      // if (officeCheck) {
+      //   res.status(403).json({ message: "This Office already exist" });
+      //   const error = new Error("This Office already exist");
+      //   error.statusCode = 403;
+      //   error.data = errors.array();
+      //   throw error;
+      // }
+      // if (departmentCheck) {
+      //   res.status(403).json({ message: "This Department already exist" });
+      //   const error = new Error("This Department already exist");
+      //   error.statusCode = 403;
+      //   error.data = errors.array();
+      //   throw error;
+      // }
+      // if (roomCheck1) {
+      //   res.status(403).json({ message: "This Room Number  already exist" });
+      //   const error = new Error("This Room Number  already exist");
+      //   error.statusCode = 403;
+      //   error.data = errors.array();
+      //   throw error;
+      // }
+      // if (roomCheck2) {
+      //   res.status(403).json({ message: "This Room Name  already exist" });
+      //   const error = new Error("This Room Name  already exist");
+      //   error.statusCode = 403;
+      //   error.data = errors.array();
+      //   throw error;
+      // }
+      if (
+        buildingCheck &&
+        officeCheck &&
+        departmentCheck &&
+        roomCheck1 &&
+        roomCheck2
+      ) {
+        res.status(403).json({ message: "These Data  already exist" });
+        const error = new Error("This These Data  already exist");
         error.statusCode = 403;
         error.data = errors.array();
         throw error;

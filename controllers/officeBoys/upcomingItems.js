@@ -216,7 +216,7 @@ exports.updataUpcomingItemStatus = async (req, res, next) => {
       // );
       res.status(201).json({
         message: "Status Updated Successfully",
-        choosenStatus: statusId,
+        choosenStatus: requestedStatus.status,
         updatedUpcomingItem: updatedUpcomingItem,
         updateOrderItem: updateOrderItem,
         finishingItems: createdFinishingItem,

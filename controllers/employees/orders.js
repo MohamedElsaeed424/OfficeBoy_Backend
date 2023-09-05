@@ -2,6 +2,9 @@ const { PrismaClient } = require("@prisma/client");
 const { use } = require("passport");
 const { validationResult } = require("express-validator");
 const notificationSender = require("../../util/sendingNotification");
+const {
+  PrismaClientValidationError,
+} = require("@prisma/client/runtime/library");
 
 const prisma = new PrismaClient();
 
@@ -227,6 +230,9 @@ exports.getOrdersHistory = async (req, res, next) => {
       },
     });
     if (!user) {
+      res.status(404).json({
+        message: "Not authorized to create Order , Should login first",
+      });
       const error = new Error(
         "Not authorized to add items to cart , Should login first"
       );
@@ -243,14 +249,30 @@ exports.getOrdersHistory = async (req, res, next) => {
       include: { orderItems: true },
     });
 
-    if (ordersData.length == 0) {
+    if (ordersData.length === 0) {
       res.status(404).json({ message: "Sorry,No orders yet" });
       const error = new Error("Sorry,No orders yet");
       error.statusCode = 404;
       throw error;
-    } else {
-      res.status(200).json({ Orders: ordersData });
     }
+    let ordersItemsContainer = [];
+    console.log(ordersData.length);
+    for (let j = 0; j < ordersData.length; j++) {
+      for (let i = 0; i < ordersData[j].orderItems.length; i++) {
+        const orderItem = await prisma.OrderItemsTBL.findUnique({
+          where: {
+            orderitemid: ordersData[j].orderItems[i].orderitemid,
+          },
+          include: {
+            OrderItemsData: true,
+          },
+        });
+        ordersItemsContainer.push(orderItem);
+      }
+    }
+    res
+      .status(200)
+      .json({ Orders: ordersData, OrderItemData: ordersItemsContainer });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -267,22 +289,26 @@ exports.getOrder = async (req, res, next) => {
       },
     });
     if (!user) {
+      res.status(404).json({
+        message: "Not authorized to create Order , Should login first",
+      });
       const error = new Error(
         "Not authorized to add items to cart , Should login first"
       );
       error.statusCode = 404;
       throw error;
     }
-    const order = await prisma.ordersTBL.findFirst({
+    const AllEmpOrders = await prisma.ordersTBL.findMany({
       where: {
         empref: {
           empid: user.empid,
         },
       },
     });
+    const order = AllEmpOrders[AllEmpOrders.length - 1];
     if (!order) {
-      res.status(404).json({ message: "Sorry,This Order Not Found" });
-      const error = new Error("Sorry,This Order Not Found");
+      res.status(404).json({ message: "No Orders yet , Try Place an order" });
+      const error = new Error("No Orders yet , Try Place an order");
       error.statusCode = 404;
       throw error;
     } else {
@@ -291,6 +317,9 @@ exports.getOrder = async (req, res, next) => {
           ordersid: {
             orderid: parseInt(order.orderid),
           },
+        },
+        include: {
+          OrderItemsData: true,
         },
       });
       res.status(200).json({ orderNom: order, orderItems: orderItems });
