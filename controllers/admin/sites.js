@@ -2,6 +2,7 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const fileHelper = require("../../util/file");
 const { validationResult } = require("express-validator");
+const siteGetter = require("../../util/siteGetter");
 exports.addSiteData = async (req, res, next) => {
   try {
     const user = await prisma.UsersTBL.findUnique({
@@ -34,79 +35,38 @@ exports.addSiteData = async (req, res, next) => {
           sitename: site,
         },
       });
-      const buildingCheck = await prisma.BuildingTBL.findUnique({
+      const buildingCheck = await prisma.BuildingTBL.findFirst({
         where: {
           buildingname: building,
+          siteid: siteCheck.siteid,
         },
       });
-      const officeCheck = await prisma.OfficeTBL.findUnique({
+      const officeCheck = await prisma.OfficeTBL.findFirst({
         where: {
           officeno: parseInt(office),
+          buildingid: buildingCheck.buildingid,
         },
       });
-      const departmentCheck = await prisma.DepartmentTBL.findUnique({
+      const departmentCheck = await prisma.DepartmentTBL.findFirst({
         where: {
           departmentname: department,
+          buildingid: buildingCheck.buildingid,
         },
       });
-      const roomCheck1 = await prisma.RoomTBL.findUnique({
+      const roomCheck = await prisma.RoomTBL.findFirst({
         where: {
           roomno: parseInt(roomNum),
-        },
-      });
-      const roomCheck2 = await prisma.RoomTBL.findUnique({
-        where: {
           roomname: roomName,
+          officeid: officeCheck.officeid,
+          departmentid: departmentCheck.departmentid,
         },
       });
-      if (siteCheck) {
-        res.status(403).json({ message: "This Site already exist" });
-        const error = new Error("This Site already exist");
-        error.statusCode = 403;
-        error.data = errors.array();
-        throw error;
-      }
-      // if (buildingCheck) {
-      //   res.status(403).json({ message: "This Building already exist" });
-      //   const error = new Error("This Building already exist");
-      //   error.statusCode = 403;
-      //   error.data = errors.array();
-      //   throw error;
-      // }
-      // if (officeCheck) {
-      //   res.status(403).json({ message: "This Office already exist" });
-      //   const error = new Error("This Office already exist");
-      //   error.statusCode = 403;
-      //   error.data = errors.array();
-      //   throw error;
-      // }
-      // if (departmentCheck) {
-      //   res.status(403).json({ message: "This Department already exist" });
-      //   const error = new Error("This Department already exist");
-      //   error.statusCode = 403;
-      //   error.data = errors.array();
-      //   throw error;
-      // }
-      // if (roomCheck1) {
-      //   res.status(403).json({ message: "This Room Number  already exist" });
-      //   const error = new Error("This Room Number  already exist");
-      //   error.statusCode = 403;
-      //   error.data = errors.array();
-      //   throw error;
-      // }
-      // if (roomCheck2) {
-      //   res.status(403).json({ message: "This Room Name  already exist" });
-      //   const error = new Error("This Room Name  already exist");
-      //   error.statusCode = 403;
-      //   error.data = errors.array();
-      //   throw error;
-      // }
       if (
+        siteCheck &&
         buildingCheck &&
         officeCheck &&
         departmentCheck &&
-        roomCheck1 &&
-        roomCheck2
+        roomCheck
       ) {
         res.status(403).json({ message: "These Data  already exist" });
         const error = new Error("This These Data  already exist");
@@ -114,56 +74,126 @@ exports.addSiteData = async (req, res, next) => {
         error.data = errors.array();
         throw error;
       }
-      // add
-      const createdSite = await prisma.SiteTBL.create({
-        data: {
-          sitename: site,
+      let siteId;
+      let buildingId;
+      let officeId;
+      let departmentId;
+      let roomId;
+      let createdSite;
+      let createdBuilding;
+      let createdOffice;
+      let createdDepartment;
+      let createdRoom;
+      ///-----------------------------------------------------
+      if (siteCheck) {
+        siteId = siteCheck.siteid;
+      } else {
+        createdSite = await prisma.SiteTBL.create({
+          data: {
+            sitename: site,
+          },
+        });
+        siteId = createdSite.siteid;
+      }
+
+      if (buildingCheck && buildingCheck.siteid === siteId) {
+        buildingId = buildingCheck.buildingid;
+      } else {
+        createdBuilding = await prisma.BuildingTBL.create({
+          data: {
+            buildingname: building,
+            siteref: {
+              connect: {
+                siteid: siteId,
+              },
+            },
+          },
+        });
+        buildingId = createdBuilding.buildingid;
+      }
+
+      if (officeCheck && officeCheck.buildingid === buildingId) {
+        officeId = officeCheck.officeid;
+      } else {
+        createdOffice = await prisma.OfficeTBL.create({
+          data: {
+            officeno: parseInt(office),
+            bulidingref: {
+              connect: {
+                buildingid: buildingId,
+              },
+            },
+          },
+        });
+        officeId = createdOffice.officeid;
+      }
+
+      if (departmentCheck && departmentCheck.buildingid === buildingId) {
+        departmentId = departmentCheck.departmentid;
+      } else {
+        createdDepartment = await prisma.DepartmentTBL.create({
+          data: {
+            departmentname: department,
+            bulidingref: {
+              connect: {
+                buildingid: buildingId,
+              },
+            },
+          },
+        });
+        departmentId = createdDepartment.departmentid;
+      }
+
+      if (
+        roomCheck &&
+        roomCheck.departmentid === departmentId &&
+        roomCheck.officeid === officeId
+      ) {
+        roomId = roomCheck.roomid;
+      } else {
+        createdRoom = await prisma.RoomTBL.create({
+          data: {
+            roomno: parseInt(roomNum),
+            roomname: roomName,
+            officeref: {
+              connect: {
+                officeid: officeId,
+              },
+            },
+            roomdepref: {
+              connect: {
+                departmentid: departmentId,
+              },
+            },
+          },
+        });
+        roomId = createdRoom.roomid;
+      }
+      //-------------------------------------------------------
+      //  Get all values to send in json
+      const siteEX = await prisma.SiteTBL.findUnique({
+        where: {
+          siteid: siteId,
         },
       });
-      const createBuilding = await prisma.BuildingTBL.create({
-        data: {
-          buildingname: building,
-          siteref: {
-            connect: {
-              siteid: createdSite.siteid,
-            },
-          },
+      const buildingEX = await prisma.BuildingTBL.findUnique({
+        where: {
+          buildingid: buildingId,
         },
       });
-      const createdOffice = await prisma.OfficeTBL.create({
-        data: {
-          officeno: parseInt(office),
-          bulidingref: {
-            connect: {
-              buildingid: createBuilding.buildingid,
-            },
-          },
+      const officeEX = await prisma.OfficeTBL.findUnique({
+        where: {
+          officeid: officeId,
         },
       });
-      const cratedDepartment = await prisma.DepartmentTBL.create({
-        data: {
-          departmentname: department,
-          bulidingref: {
-            connect: {
-              buildingid: createBuilding.buildingid,
-            },
-          },
+      const departmentEX = await prisma.DepartmentTBL.findUnique({
+        where: {
+          departmentid: departmentId,
         },
       });
-      const createdRoom = await prisma.RoomTBL.create({
-        data: {
-          roomno: parseInt(roomNum),
-          roomname: roomName,
-          officeref: {
-            connect: {
-              officeid: createdOffice.officeid,
-            },
-          },
-          roomdepref: {
-            connect: {
-              departmentid: cratedDepartment.departmentid,
-            },
-          },
+      const roomEX = await prisma.RoomTBL.findUnique({
+        where: {
+          roomid: roomId,
         },
       });
       res
@@ -171,11 +201,11 @@ exports.addSiteData = async (req, res, next) => {
         // connect with Front end...
         .json({
           message: "Site data Created Successfully",
-          site: createdSite,
-          building: createBuilding,
-          office: createdOffice,
-          department: cratedDepartment,
-          room: createdRoom,
+          site: siteEX,
+          building: buildingEX,
+          office: officeEX,
+          department: departmentEX,
+          room: roomEX,
           creator: { userid: user.userid, name: user.firstname },
         });
     } else {
@@ -197,15 +227,6 @@ exports.addSiteData = async (req, res, next) => {
 };
 
 exports.getSiteData = async (req, res, next) => {
-  // const user = await prisma.UsersTBL.findUnique({
-  //   where: {
-  //     userid: req.userId,
-  //   },
-  //   include: {
-  //     roleref: true,
-  //   },
-  // });
-  // if (user.roleref.rolename == "Admin") {
   try {
     const sites = await prisma.SiteTBL.findMany();
     if (sites.length === 0) {
@@ -224,27 +245,30 @@ exports.getSiteData = async (req, res, next) => {
     }
     next(err);
   }
-  // } else {
-  //   const error = new Error(
-  //     "You Are not allowed to add this item , you are not Admin"
-  //   );
-  //   error.statusCode = 403;
-  //   throw error;
-  // }
 };
 
 exports.getBuildingData = async (req, res, next) => {
-  // const user = await prisma.UsersTBL.findUnique({
-  //   where: {
-  //     userid: req.userId,
-  //   },
-  //   include: {
-  //     roleref: true,
-  //   },
-  // });
-  // if (user.roleref.rolename == "Admin") {
   try {
-    const buildings = await prisma.BuildingTBL.findMany();
+    const siteId = req.body.siteId;
+    const site = await prisma.SiteTBL.findUnique({
+      where: {
+        siteid: siteId,
+      },
+      include: {
+        Building: true,
+      },
+    });
+    if (!site) {
+      res.status(404).json({ message: "This Site Dose't Exist" });
+      const error = new Error("This Site Dose't Exist");
+      error.statusCode = 404;
+      throw error;
+    }
+    const buildings = await prisma.BuildingTBL.findMany({
+      where: {
+        siteid: siteId,
+      },
+    });
     if (buildings.length === 0) {
       res.status(404).json({
         message: "Sorry, No buildings to be shown yet , Try add some",
@@ -263,31 +287,32 @@ exports.getBuildingData = async (req, res, next) => {
     }
     next(err);
   }
-  // } else {
-  //   res.status(403).json({
-  //     message: "You Are not allowed to add this item , you are not Admin",
-  //   });
-  //   const error = new Error(
-  //     "You Are not allowed to add this item , you are not Admin"
-  //   );
-  //   error.statusCode = 403;
-  //   throw error;
-  // }
 };
 
 exports.getOfficeData = async (req, res, next) => {
-  // const user = await prisma.UsersTBL.findUnique({
-  //   where: {
-  //     userid: req.userId,
-  //   },
-  //   include: {
-  //     roleref: true,
-  //   },
-  // });
-  // if (user.roleref.rolename == "Admin") {
   try {
-    const offices = await prisma.OfficeTBL.findMany();
-    if (offices.length === 0) {
+    const siteId = req.body.siteId;
+    const site = await siteGetter.getSite(siteId);
+    if (!site) {
+      res.status(404).json({ message: "This Site Dose't Exist" });
+      const error = new Error("This Site Dose't Exist");
+      error.statusCode = 404;
+      throw error;
+    }
+    const siteBuildings = site.Building;
+    let officesContainer = [];
+    for (let i = 0; i < siteBuildings.length; i++) {
+      const office = await prisma.OfficeTBL.findFirst({
+        where: {
+          buildingid: siteBuildings[i].buildingid,
+        },
+      });
+      if (office) {
+        officesContainer.push(office);
+      }
+    }
+    console.log(officesContainer.length === 0);
+    if (officesContainer.length === 0) {
       res.status(404).json({
         message: "Sorry, No offices to be shown yet , Try add some",
       });
@@ -297,39 +322,40 @@ exports.getOfficeData = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
-    console.log(offices);
-    res.status(200).json({ office: offices });
+    console.log(officesContainer);
+    res.status(200).json({ offices: officesContainer });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
     }
     next(err);
   }
-  // } else {
-  //   res.status(403).json({
-  //     message: "You Are not allowed to add this item , you are not Admin",
-  //   });
-  //   const error = new Error(
-  //     "You Are not allowed to add this item , you are not Admin"
-  //   );
-  //   error.statusCode = 403;
-  //   throw error;
-  // }
 };
 
 exports.getDepartmentData = async (req, res, next) => {
-  // const user = await prisma.UsersTBL.findUnique({
-  //   where: {
-  //     userid: req.userId,
-  //   },
-  //   include: {
-  //     roleref: true,
-  //   },
-  // });
-  // if (user.roleref.rolename == "Admin") {
   try {
-    const departments = await prisma.DepartmentTBL.findMany();
-    if (departments.length === 0) {
+    const siteId = req.body.siteId;
+    const site = await siteGetter.getSite(siteId);
+    if (!site) {
+      res.status(404).json({ message: "This Site Dose't Exist" });
+      const error = new Error("This Site Dose't Exist");
+      error.statusCode = 404;
+      throw error;
+    }
+    const siteBuildings = site.Building;
+    let departmentsContainer = [];
+    for (let i = 0; i < siteBuildings.length; i++) {
+      const department = await prisma.DepartmentTBL.findFirst({
+        where: {
+          buildingid: siteBuildings[i].buildingId,
+        },
+      });
+      if (department) {
+        departmentsContainer.push(department);
+      }
+    }
+
+    if (departmentsContainer.length === 0) {
       res.status(404).json({
         message: "Sorry, No departments to be shown yet , Try add some",
       });
@@ -339,36 +365,87 @@ exports.getDepartmentData = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
-    console.log(departments);
-    res.status(200).json({ departments: departments });
+    console.log(departmentsContainer);
+    res.status(200).json({ departments: departmentsContainer });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
     }
     next(err);
   }
-  // } else {
-  //   const error = new Error(
-  //     "You Are not allowed to add this item , you are not Admin"
-  //   );
-  //   error.statusCode = 403;
-  //   throw error;
-  // }
 };
 
 exports.getRoomData = async (req, res, next) => {
-  // const user = await prisma.UsersTBL.findUnique({
-  //   where: {
-  //     userid: req.userId,
-  //   },
-  //   include: {
-  //     roleref: true,
-  //   },
-  // });
-  // if (user.roleref.rolename == "Admin") {
   try {
-    const rooms = await prisma.RoomTBL.findMany();
-    if (rooms.length === 0) {
+    const siteId = req.body.siteId;
+    const site = await siteGetter.getSite(siteId);
+    if (!site) {
+      res.status(404).json({ message: "This Site Dose't Exist" });
+      const error = new Error("This Site Dose't Exist");
+      error.statusCode = 404;
+      throw error;
+    }
+    const siteBuildings = site.Building;
+    let officesContainer = [];
+    for (let i = 0; i < siteBuildings.length; i++) {
+      const office = await prisma.OfficeTBL.findFirst({
+        where: {
+          buildingid: siteBuildings[i].buildingid,
+        },
+      });
+      if (office) {
+        officesContainer.push(office);
+      }
+    }
+    let departmentsContainer = [];
+    for (let i = 0; i < siteBuildings.length; i++) {
+      const department = await prisma.DepartmentTBL.findFirst({
+        where: {
+          buildingid: siteBuildings[i].buildingId,
+        },
+      });
+      if (department) {
+        departmentsContainer.push(department);
+      }
+    }
+    // console.log(officesContainer[0]);
+    // console.log(departmentsContainer[0]);
+    console.log();
+    let roomsContainer = [];
+    for (
+      let i = 0;
+      i < officesContainer.length || i < departmentsContainer.length;
+      i++
+    ) {
+      console.log("Loop", i, officesContainer[i]);
+      console.log("Loop", i, departmentsContainer[i]);
+      let room;
+      if (officesContainer[i] && departmentsContainer[i]) {
+        room = await prisma.RoomTBL.findFirst({
+          where: {
+            officeid: officesContainer[i].officeid,
+            departmentid: departmentsContainer[i].departmentid,
+          },
+        });
+      } else if (!officesContainer[i] && departmentsContainer[i]) {
+        room = await prisma.RoomTBL.findFirst({
+          where: {
+            departmentid: departmentsContainer[i].departmentid,
+          },
+        });
+      } else if (!departmentsContainer[i] && officesContainer[i]) {
+        room = await prisma.RoomTBL.findFirst({
+          where: {
+            officeid: officesContainer[i].officeid,
+          },
+        });
+      }
+      if (room) {
+        roomsContainer.push(room);
+      }
+    }
+
+    if (roomsContainer.length === 0) {
       res.status(404).json({
         message: "Sorry, No rooms to be shown yet , Try add some",
       });
@@ -376,19 +453,12 @@ exports.getRoomData = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
-    console.log(rooms);
-    res.status(200).json({ rooms: rooms });
+    console.log(roomsContainer);
+    res.status(200).json({ rooms: roomsContainer });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
     }
     next(err);
   }
-  // } else {
-  //   const error = new Error(
-  //     "You Are not allowed to add this item , you are not Admin"
-  //   );
-  //   error.statusCode = 403;
-  //   throw error;
-  // }
 };

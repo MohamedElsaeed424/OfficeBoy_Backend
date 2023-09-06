@@ -19,7 +19,6 @@ exports.createOrder = async (req, res, next) => {
     //   throw error;
     // }
     const officeBoyId = req.body.officeBoyId;
-    const receivedToken = req.body.FCMToken;
     const user = await prisma.EmployeeTBL.findUnique({
       where: {
         empid: req.userId,
@@ -46,6 +45,9 @@ exports.createOrder = async (req, res, next) => {
     const requestedOfficeBoy = await prisma.officeBoyTBL.findUnique({
       where: {
         officeboyid: officeBoyId,
+      },
+      include: {
+        officeboy: true,
       },
     });
     console.log(requestedOfficeBoy, "Office Boy Selected");
@@ -202,11 +204,11 @@ exports.createOrder = async (req, res, next) => {
         cartid: userCart.cartid,
       },
     });
-    // notificationSender(
-    //   receivedToken,
-    //   "Order Created",
-    //   "${createdUpcomingItem.empname} Ordered Something"
-    // );
+    notificationSender(
+      requestedOfficeBoy.officeboy.fcmtoken,
+      "Order Created",
+      "${createdUpcomingItem.empname} Ordered Something"
+    );
     res.status(202).json({
       message: "Order created successfully",
       orderNom: order.orderid,
@@ -336,7 +338,6 @@ exports.reOrder = async (req, res, next) => {
   try {
     const orderId = req.params.orderId;
     const officeBoyId = req.body.officeBoyId;
-    const receivedToken = req.body.FCMToken;
     const user = await prisma.EmployeeTBL.findUnique({
       where: {
         empid: req.userId,
@@ -360,6 +361,9 @@ exports.reOrder = async (req, res, next) => {
     const requestedOfficeBoy = await prisma.officeBoyTBL.findUnique({
       where: {
         officeboyid: officeBoyId,
+      },
+      include: {
+        officeboy: true,
       },
     });
     console.log(requestedOfficeBoy, "Office Boy Selected");
@@ -505,11 +509,11 @@ exports.reOrder = async (req, res, next) => {
           },
         });
       }
-      // notificationSender(
-      //   receivedToken,
-      //   "Order Created",
-      //   "${createdUpcomingItem.empname} Ordered Something"
-      // );
+      notificationSender(
+        requestedOfficeBoy.officeboy.fcmtoken,
+        "Order Created",
+        "${createdUpcomingItem.empname} Ordered Something"
+      );
       res.status(202).json({
         message: "Reorder created successfully",
         orderNom: order.orderid,

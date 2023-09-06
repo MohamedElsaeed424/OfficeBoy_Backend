@@ -116,12 +116,16 @@ router.post(
 
 router.get("/site-data", sitesController.getSiteData);
 
-router.get("/building-data", sitesController.getBuildingData);
+router.get("/building-data", checkRequestBody, sitesController.getBuildingData);
 
-router.get("/office-data", sitesController.getOfficeData);
+router.get("/office-data", checkRequestBody, sitesController.getOfficeData);
 
-router.get("/department-data", sitesController.getDepartmentData);
+router.get(
+  "/department-data",
+  checkRequestBody,
+  sitesController.getDepartmentData
+);
 
-router.get("/room-data", sitesController.getRoomData);
+router.get("/room-data", checkRequestBody, sitesController.getRoomData);
 
 module.exports = router;

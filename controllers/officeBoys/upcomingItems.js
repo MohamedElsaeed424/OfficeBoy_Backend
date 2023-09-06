@@ -2,6 +2,7 @@ const { PrismaClient } = require("@prisma/client");
 const { use } = require("passport");
 const { validationResult } = require("express-validator");
 const notificationSender = require("../../util/sendingNotification");
+const e = require("express");
 const prisma = new PrismaClient();
 
 exports.getUpcomingItems = async (req, res, next) => {
@@ -85,7 +86,6 @@ exports.updataUpcomingItemStatus = async (req, res, next) => {
     if (user.roleref.rolename == "office Boy") {
       const upcomingItemId = req.params.upcomingItemId;
       const statusId = req.body.statusId;
-      // const receivedToken = req.body.FCMToken;
       const statusCheck = await prisma.StatusTBL.findUnique({
         where: {
           statusid: parseInt(statusId),
@@ -101,6 +101,9 @@ exports.updataUpcomingItemStatus = async (req, res, next) => {
       const upcomingItemCheck = await prisma.UpcomingItemsTBL.findUnique({
         where: {
           upcomingitemid: parseInt(upcomingItemId),
+        },
+        include: {
+          orderitemref: true,
         },
       });
       if (!upcomingItemCheck) {
@@ -207,10 +210,34 @@ exports.updataUpcomingItemStatus = async (req, res, next) => {
           },
         },
       });
-      //   console.log(updatedUpcomingItem.orderitemid);
-      console.log(createdFinishingItem);
+      // to send message to this employee
+      // const updatedOrderItem2 = await prisma.orderItemsTBL.findUnique({
+      //   where: {
+      //     orderitemid: updateOrderItem.orderitemid,
+      //   },
+      //   include: {
+      //     ordersid: true,
+      //   },
+      // });
+
+      // const updatedOrder = await prisma.ordersTBL.findUnique({
+      //   where: {
+      //     orderid: updatedOrderItem2.orderid,
+      //   },
+      //   include: {
+      //     empref: true,
+      //   },
+      // });
+
+      // const userForToken = await prisma.usersTBL.findUnique({
+      //   where: {
+      //     userid: updatedOrder.empref.empid,
+      //   },
+      // });
+      // //   console.log(updatedUpcomingItem.orderitemid);
+      // console.log(createdFinishingItem);
       // notificationSender(
-      //   receivedToken,
+      //   userForToken.fcmtoken,
       //   "Order Status",
       //   "Your Order is ${requestedStatus.status} "
       // );

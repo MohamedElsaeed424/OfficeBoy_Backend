@@ -28,6 +28,7 @@ model UsersTBL {
     lastname      String
     email         String             @unique
     password      String
+    fcmtoken      String?
     // rolename      String
     roleid        Int
     roleref       RoleTBL            @relation(fields: [roleid], references: [roleid])
@@ -85,7 +86,7 @@ model SiteTBL {
 
 model BuildingTBL {
     buildingid   Int             @id @unique @default(autoincrement())
-    buildingname String          @unique
+    buildingname String
     siteid       Int
     siteref      SiteTBL         @relation(fields: [siteid], references: [siteid])
     Department   DepartmentTBL[]
@@ -95,7 +96,7 @@ model BuildingTBL {
 
 model OfficeTBL {
     officeid    Int            @id @unique @default(autoincrement())
-    officeno    Int            @unique
+    officeno    Int
     Employee    EmployeeTBL[]
     Officeboy   OfficeBoyTBL[]
     buildingid  Int
@@ -105,7 +106,7 @@ model OfficeTBL {
 
 model DepartmentTBL {
     departmentid   Int           @id @unique @default(autoincrement())
-    departmentname String        @unique
+    departmentname String
     buildingid     Int
     Room           RoomTBL[]
     Employee       EmployeeTBL[]
@@ -114,8 +115,8 @@ model DepartmentTBL {
 
 model RoomTBL {
     roomid       Int           @id @unique @default(autoincrement())
-    roomno       Int           @unique
-    roomname     String        @unique
+    roomno       Int
+    roomname     String
     officeid     Int
     officeref    OfficeTBL     @relation(fields: [officeid], references: [officeid])
     departmentid Int
@@ -287,6 +288,6 @@ model NotificationsTBL {
 //commands
 //------------
 // npm run db:studio  
-// npx prisma genarate
+// npx prisma generate
 // npx prisma migrate dev --name init  --create-only => gererate a version of prisma table inside our db  ,geneate prise migration inside out tables
 // npx prisma migrate deploy   => deploy ur actual model user
