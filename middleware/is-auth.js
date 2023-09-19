@@ -1,5 +1,7 @@
 const express = require("express");
 const app = express();
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
 
 const jwt = require("jsonwebtoken");
 //const tokensecret = 'mysecretkey569';
@@ -40,11 +42,12 @@ const jwt = require("jsonwebtoken");
 
 //-----------------jwt passport------------------------------------>
 
-module.exports = (req, res, next) => {
+module.exports = async (req, res, next) => {
   // let authHeader = req.get("Authorization");
   const authHeader = req.headers["authorization"];
   //-----------------If i cant fetch the Autherization header from frontend------------------
   if (!authHeader) {
+    res.status(401).json({ message: "Not Authenticated" });
     const error = new Error("Not Authenticated");
     error.statusCode = 401;
     throw error;
@@ -54,16 +57,42 @@ module.exports = (req, res, next) => {
   //---------------------Varify the Token------------------------------------
   try {
     decodedToken = jwt.verify(token, "MY_ACCESS_SECRET_TOKEN_GENERATED");
+    if (!decodedToken) {
+      res.status(401).json({ message: "Not Authenticated" });
+      const error = new Error("Not Authenticated");
+      error.statusCode = 401;
+      throw error;
+    }
+    const checkToken = await prisma.tokensTBL.findUnique({
+      where: {
+        token: token,
+      },
+    });
+    if (!checkToken) {
+      res.status(403).json({ message: "login first" });
+      const error = new Error("login first");
+      error.statusCode = 403;
+      throw error;
+    }
+    if (checkToken.blackListedToken) {
+      res.status(403).json({
+        message: "You are blocked , You can not perform this request",
+      });
+      const error = new Error(
+        "You are blocked ,You can not perform this request"
+      );
+      error.statusCode = 403;
+      throw error;
+    }
+    req.accessToken = token;
+    req.userId = decodedToken.userId;
+    next();
   } catch (err) {
-    err.statusCode = 500;
-    throw err;
+    console.log(err);
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+    return err;
   }
-  //-----------------Check if it exist---------------------------------------
-  if (!decodedToken) {
-    const error = new Error("Not Authenticated");
-    error.statusCode = 401;
-    throw error;
-  }
-  req.userId = decodedToken.userId;
-  next();
 };

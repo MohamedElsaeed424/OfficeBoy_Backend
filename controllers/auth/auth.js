@@ -6,9 +6,10 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const sgMail = require("@sendgrid/mail");
 const markdown = require("markdown-it")();
-
+const TokenHandler = require("../../util/TokenHandler");
 const express = require("express"); //new
 const { off } = require("process");
+const { use } = require("passport");
 const app = express(); //new
 
 // sgMail.setApiKey(
@@ -362,61 +363,30 @@ exports.login = async (req, res, next) => {
         },
       });
       if (!user) {
+        res.status(404).json({ message: "User Not Found , Try Signup" });
         const error = new Error("User Not Found , Try Signup");
         error.statusCode = 404;
         throw error;
       }
       const doMatch = await bcrypt.compare(password, user.password);
       if (!doMatch) {
+        res.status(401).json({ message: "Wrong Password" });
         const error = new Error("Wrong Password");
         error.statusCode = 401;
         throw error;
       }
       //-------------------------------- Adding JWT (json web token) for a user -----------------------
-      const accessToken = generateAccessToken({ userid: user.userid });
-      const refreshToken = jwt.sign(
-        { email: user.email, userId: user.userid },
-        "MY_REFRESH_SECRET_TOKEN_GENERATED"
-      );
-      // connection with db
-      console.log(refreshToken, user.userid);
-      const createdRefToken = await prisma.TokensTBL.create({
-        data: {
-          refreshtoken: refreshToken,
-          // createdAt: new Date(),
-          reftoken: {
-            connect: {
-              userid: user.userid,
-            },
-          },
-        },
+      const accessToken = await TokenHandler.generateAccessToken({
+        userid: user.userid,
       });
-
-      // const createdRefToken = await prisma.TokensTBL.createOne({
-      //   data: {
-      //     refreshtoken: refreshToken,
-      //     createdAt: new Date(),
-      //     reftoken: {
-      //       connect: {
-      //         userid: user.userid,
-      //       },
-      //     },
-      //   },
-      //   //data: {
-      //   //refreshtoken: refreshToken,
-      //   //userid: user.userid,
-      //   //createdAt: new Date(),
-      //   // connect: {
-      //   //   reftoken: {
-      //   //     uderid: user.userid,
-      //   //   },
-      //   // },
-      //   // },
-      // });
+      const refreshToken = await TokenHandler.generateRefreshToken({
+        userid: user.userid,
+      });
+      console.log(refreshToken, user.userid);
       //-------------------------------------------------------------------------------------------
       res.status(200).json({
         accessToken: accessToken,
-        refreshToken: createdRefToken,
+        refreshToken: refreshToken,
         userId: user.userid.toString(),
       });
       console.log(`${email}: Loged in successfully`);
@@ -430,27 +400,45 @@ exports.login = async (req, res, next) => {
     }
   }
 };
-function generateAccessToken(user) {
-  return jwt.sign(
-    { email: user.email, userId: user.userid },
-    "MY_ACCESS_SECRET_TOKEN_GENERATED",
-    { expiresIn: "3d" }
-  );
-}
+
 exports.logout = async (req, res, next) => {
   try {
-    const refToken = req.body.refToken;
-    deletedRefToken = await prisma.TokensTBL.delete({
+    const refreshToken = req.body.refreshToken;
+    const fetchedRefToken = await prisma.TokensTBL.findUnique({
       where: {
-        refreshtoken: refToken,
+        token: refreshToken,
       },
     });
-    if (!deletedRefToken) {
-      const error = new Error("No Refresh token found");
+    if (!fetchedRefToken) {
+      res.status(404).json({
+        message: "You are not autherized , token not found",
+      });
+      const error = new Error("You are not autherized , token not found");
       error.statusCode = 404;
       throw error;
     }
-    res.status(202).json({ message: "Token deleted" });
+    const deletedRefToken = await prisma.tokensTBL.delete({
+      where: {
+        token: refreshToken,
+      },
+    });
+    const deletedAccessToken = await prisma.tokensTBL.delete({
+      where: {
+        token: req.accessToken,
+      },
+    });
+
+    if (!deletedRefToken || !deletedAccessToken) {
+      res.status(401).json({ message: "No user exsist now to logout" });
+      const error = new Error("No user exsist now to logout");
+      error.statusCode = 404;
+      throw error;
+    }
+    res.status(202).json({
+      message: "User Logedout",
+      deletedAccessToken: deletedAccessToken,
+      deletedRefToken: deletedRefToken,
+    });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -459,32 +447,69 @@ exports.logout = async (req, res, next) => {
     return err;
   }
 };
-// exports.logout = async (req, res, next) => {
-//   const token = req.body.token;
-//   blacklistToken(token);
-//   res.json({ message: "Logout successful" });
-//   console.log("user loged out");
-// };
 
-// async function blacklistToken(token) {
-//   checkBlacklist(token);
-//   console.log(token);
-//   await prisma.BlacklistedToken.create({
-//     data: {
-//       token: token,
-//     },
-//   });
-// }
-
-// async function checkBlacklist(req, res, next, token) {
-//   const blacklistedToken = await prisma.BlacklistedToken.findUnique({
-//     where: {
-//       token: token,
-//     },
-//   });
-//   if (blacklistedToken) {
-//     return res.status(401).json({ message: "Invalid token" });
-//   } else {
-//     next();
-//   }
-// }
+exports.refreshTheToken = async (req, res, next) => {
+  try {
+    const refreshToken = req.body.refreshToken;
+    console.log("req.AccessToken", req.accessToken);
+    const fetchedRefToken = await prisma.TokensTBL.findUnique({
+      where: {
+        token: refreshToken,
+      },
+    });
+    if (!fetchedRefToken) {
+      res.status(404).json({
+        message: "You are not autherized , token not found",
+      });
+      const error = new Error("You are not autherized , token not found");
+      error.statusCode = 404;
+      throw error;
+    }
+    jwt.verify(
+      fetchedRefToken.token,
+      "MY_REFRESH_SECRET_TOKEN_GENERATED",
+      async (err, user) => {
+        // console.log(err);
+        if (err) return res.status(404).json({ message: "Token expried" });
+        if (fetchedRefToken.blackListedToken) {
+          res
+            .status(403)
+            .json({ message: "You are blocked , we cant refresh your token" });
+          const error = new Error(
+            "You are blocked , we cant refresh your token"
+          );
+          error.statusCode = 403;
+          throw error;
+        }
+        const deletedRefToken = await prisma.tokensTBL.delete({
+          where: {
+            token: fetchedRefToken.token,
+          },
+        });
+        const deletedAccessToken = await prisma.tokensTBL.delete({
+          where: {
+            token: req.accessToken,
+          },
+        });
+        const accessToken = await TokenHandler.generateAccessToken({
+          userid: user.userId,
+        });
+        const refreshToken = await TokenHandler.generateRefreshToken({
+          userid: user.userId,
+        });
+        res.status(202).json({
+          message: "Token Refreshed Successfully",
+          accessToken: accessToken,
+          refreshToken: refreshToken,
+        });
+      }
+    );
+  } catch (err) {
+    console.log(err);
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+    return err;
+  }
+};

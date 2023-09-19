@@ -5,7 +5,7 @@ const { PrismaClient } = require("@prisma/client");
 const emailDomainValidator = require("../../middleware/emails/domainValidator");
 const checkRequestBody = require("../../middleware/bodyDataChecker");
 const englishValidator = require("../../middleware/emails/englishValidator");
-
+const isAuth = require("../../middleware/is-auth");
 const authController = require("../../controllers/auth/auth");
 
 const router = express.Router();
@@ -166,6 +166,13 @@ router.post(
   authController.login
 );
 
-router.delete("/logout", authController.logout);
+router.post("/logout", checkRequestBody, isAuth, authController.logout);
+
+router.post(
+  "/refrehToken",
+  checkRequestBody,
+  isAuth,
+  authController.refreshTheToken
+);
 
 module.exports = router;

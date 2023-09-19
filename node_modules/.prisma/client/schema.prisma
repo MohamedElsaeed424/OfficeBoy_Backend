@@ -9,17 +9,22 @@ datasource db {
 
 //-----------------------------------------------------------------------------
 model TokensTBL {
-    tokenid      Int      @id @default(autoincrement())
-    refreshtoken String
-    userid       Int
-    reftoken     UsersTBL @relation(fields: [userid], references: [userid])
+    tokenid          Int      @id @default(autoincrement())
+    token            String   @unique
+    type             String
+    createddate      DateTime
+    // createdtime      DateTime
+    expiresIn        DateTime
+    blackListedToken Boolean  @default(false)
+    userid           Int
+    reftoken         UsersTBL @relation(fields: [userid], references: [userid])
 }
 
-model BlacklistedToken {
-    id        Int      @id @default(autoincrement())
-    token     String   @unique
-    createdat DateTime @default(now())
-}
+// model BlacklistedToken {
+//     id          Int      @id @default(autoincrement())
+//     token       String   @unique
+//     createdDate DateTime @default(now())
+// }
 
 //----------------------------Users-----------------------------------------------------
 model UsersTBL {

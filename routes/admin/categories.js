@@ -32,7 +32,6 @@ router.post(
       }),
   ],
   isAuth,
-
   categoriesController.addCategory
 );
 
